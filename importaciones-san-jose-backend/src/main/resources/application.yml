@@ -1,0 +1,55 @@
+server:
+  port: ${PORT:8089}
+
+spring:
+  application:
+    name: importaciones-san-jose-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/importaciones_san_jose?useSSL=false&serverTimezone=America/Lima&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: SanJoseHikariPool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: America/Lima
+    open-in-view: false
+
+  sql:
+    init:
+      mode: never
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  jwt:
+    secret: ${JWT_SECRET:cambia_esto_por_un_secreto_largo_de_al_menos_32_caracteres_en_produccion_1234567890}
+    expiration-ms: ${JWT_EXPIRATION:86400000}
+    
+logging:
+  level:
+    root: INFO
+    com.importacionessanjose: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: ERROR
+
+    springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    filter: true
+  show-actuator: false

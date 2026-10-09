@@ -1,0 +1,43 @@
+# =========================
+# Root & IDE Files
+# =========================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# =========================
+# Backend (Spring Boot / Maven)
+# =========================
+importaciones-san-jose-backend/target/
+importaciones-san-jose-backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# =========================
+# Frontend (Node / Vite / React)
+# =========================
+importaciones-san-jose-frontend/node_modules/
+importaciones-san-jose-frontend/dist/
+importaciones-san-jose-frontend/dist-ssr/
+importaciones-san-jose-frontend/*.local
+importaciones-san-jose-frontend/.env.local
+importaciones-san-jose-frontend/.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Environment & Secrets
+# =========================
+.env
+*.env

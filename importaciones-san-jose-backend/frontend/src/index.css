@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  /* Brand Colors */
+  --c-primary: #C0392B;
+  --c-primary-dark: #9E2A2B;
+  --c-accent: #E67E22;
+  --c-accent-hover: #F39C12;
+  
+  /* Neutral / Backgrounds */
+  --c-bg: #FAF9F6;
+  --c-surface: #FFFFFF;
+  --c-border: #F0E6D8;
+  
+  /* Text */
+  --c-text-main: #1C1917;
+  --c-text-muted: #57534E;
+  --c-text-light: #A8A29E;
+
+  /* Utility */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-header: rgba(158, 42, 43, 0.95);
+  --shadow-sm: 0 2px 4px rgba(192, 57, 43, 0.05);
+  --shadow-md: 0 4px 12px rgba(192, 57, 43, 0.08);
+  --shadow-hover: 0 8px 24px rgba(230, 126, 34, 0.15);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --transition: all 0.25s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--c-bg);
+  color: var(--c-text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+ul {
+  list-style: none;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-sm);
+}
+
+.glass-badge {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Base Layout */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, var(--c-primary) 0%, var(--c-primary-dark) 100%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(192, 57, 43, 0.3);
+  filter: brightness(1.1);
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-accent-hover) 100%);
+  color: white;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(230, 126, 34, 0.2);
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(230, 126, 34, 0.3);
+  filter: brightness(1.1);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--c-primary);
+  border: 2px solid var(--c-primary);
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-outline:hover {
+  background: var(--c-primary);
+  color: white;
+}
