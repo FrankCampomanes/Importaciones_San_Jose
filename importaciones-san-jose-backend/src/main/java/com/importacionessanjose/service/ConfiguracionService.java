@@ -63,4 +63,18 @@ public class ConfiguracionService {
                 .map(Configuracion::getValor)
                 .orElse("ROSES080816");
     }
+
+    public String getCulqiPublicKey() {
+        return repository.findByClave("CULQI_PUBLIC_KEY")
+                .filter(Configuracion::getActivo)
+                .map(Configuracion::getValor)
+                .orElse("pk_test_sample12345678");
+    }
+
+    public String getCulqiSecretKey() {
+        return repository.findByClave("CULQI_SECRET_KEY")
+                .filter(Configuracion::getActivo)
+                .map(Configuracion::getValor)
+                .orElse("sk_test_sample12345678");
+    }
 }

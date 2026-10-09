@@ -35,6 +35,9 @@ app:
   jwt:
     secret: ${JWT_SECRET:cambia_esto_por_un_secreto_largo_de_al_menos_32_caracteres_en_produccion_1234567890}
     expiration-ms: ${JWT_EXPIRATION:86400000}
+  culqi:
+    public-key: ${CULQI_PUBLIC_KEY:pk_test_sample12345678}
+    secret-key: ${CULQI_SECRET_KEY:sk_test_sample12345678}
     
 logging:
   level:

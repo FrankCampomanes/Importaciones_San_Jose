@@ -179,7 +179,9 @@ INSERT INTO Configuracion (Clave, Valor, Descripcion, Tipo) VALUES
 ('DELIVERY_UMBRAL_GRATIS', '60.00', 'Monto mínimo de compra para delivery gratuito en soles', 'DECIMAL'),
 ('DELIVERY_COSTO_FIJO', '2.00', 'Costo estándar de delivery si no supera el umbral', 'DECIMAL'),
 ('DELIVERY_LIMA_METROPOLITANA', 'true', 'Habilitación de cobertura para Lima Norte y Callao', 'BOOLEANO'),
-('ADMIN_REGISTRATION_KEY', 'ROSES080816', 'Clave requerida para registro de administradores', 'TEXTO');
+('ADMIN_REGISTRATION_KEY', 'ROSES080816', 'Clave requerida para registro de administradores', 'TEXTO'),
+('CULQI_PUBLIC_KEY', 'pk_test_sample12345678', 'Llave pública de Culqi Sandbox para tokenización frontend', 'TEXTO'),
+('CULQI_SECRET_KEY', 'sk_test_sample12345678', 'Llave secreta de Culqi Sandbox para cargos en backend', 'TEXTO');
 
 -- Sedes Oficiales
 INSERT INTO Sedes (ID_Sede, Nombre_Sede, Direccion, Distrito, Provincia, Telefono, Horario_Atencion) VALUES
