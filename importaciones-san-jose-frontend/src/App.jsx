@@ -95,6 +95,20 @@ export default function App() {
       ]);
       setProducts(prodsData || []);
       setSedes(sedesData || []);
+
+      // Auto-abrir producto si el cliente escaneó el QR con su celular
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const qrCode = urlParams.get('qr');
+        if (qrCode && prodsData && prodsData.length > 0) {
+          const match = prodsData.find(p => 
+            p.codigoQr && p.codigoQr.trim().toUpperCase() === qrCode.trim().toUpperCase()
+          );
+          if (match) {
+            setSelectedProduct(match);
+          }
+        }
+      }
     } catch (e) {
       console.error('Error cargando datos:', e);
     } finally {

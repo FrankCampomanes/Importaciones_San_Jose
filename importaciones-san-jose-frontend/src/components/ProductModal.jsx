@@ -66,7 +66,9 @@ export default function ProductModal({ product, onClose, selectedSede }) {
                 </h4>
                 <div style={{ background: '#FFF', padding: '10px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://importaciones-san-jose.com/producto/${product.codigoQr}`}
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(
+                      `${typeof window !== 'undefined' ? window.location.origin : 'https://importaciones-san-jose.vercel.app'}/?qr=${product.codigoQr}`
+                    )}`}
                     alt={`QR de ${product.nombre}`}
                     style={{ width: '120px', height: '120px', display: 'block' }}
                   />
