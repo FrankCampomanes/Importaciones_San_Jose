@@ -3605,4 +3605,163 @@
   color: #B45309;
 }
 
+/* ─────────── ADAPTACIÓN MÓVIL Y RESPONSIVE REFORZADA ─────────── */
+@media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* Ocultar barra superior fija para ganar espacio vertical */
+  .topbar {
+    display: none !important;
+  }
+
+  .nav-content {
+    padding: 8px 12px !important;
+    gap: 8px !important;
+  }
+
+  .logo-text .brand-subtitle {
+    display: none !important;
+  }
+
+  .brand-title {
+    font-size: 13.5px !important;
+  }
+
+  .header-nav-links {
+    display: none !important;
+  }
+
+  .nav-actions {
+    gap: 6px !important;
+  }
+
+  .custom-dropdown-trigger {
+    padding: 5px 10px !important;
+    font-size: 11px !important;
+    max-width: 125px !important;
+  }
+
+  .custom-dropdown-trigger span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Catálogo en 2 columnas balanceadas en celulares */
+  .products-grid-layout {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .product-card {
+    padding: 10px 8px !important;
+  }
+
+  .product-card-title {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+  }
+
+  .product-card-price {
+    font-size: 14.5px !important;
+  }
+
+  /* Modales en Celular (Ajuste Perfecto a la Pantalla) */
+  .modal-overlay {
+    padding: 8px !important;
+    align-items: center !important;
+  }
+
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px 14px !important;
+    border-radius: 16px !important;
+    max-height: 92vh !important;
+    margin: 0 auto !important;
+  }
+
+  .modal-content.modal-lg {
+    max-width: 100% !important;
+    max-height: 94vh !important;
+    padding: 18px 14px !important;
+  }
+
+  .product-modal-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .modal-img-container {
+    max-width: 200px !important;
+    height: 180px !important;
+    padding-top: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  .modal-img-container img {
+    object-fit: contain !important;
+  }
+
+  /* En celulares no tiene sentido mostrar el QR de escanear en celular */
+  .modal-qr-preview {
+    display: none !important;
+  }
+
+  .modal-product-title {
+    font-size: 17px !important;
+    margin-top: 6px !important;
+  }
+
+  .modal-price-box {
+    margin: 8px 0 !important;
+    padding: 8px 12px !important;
+  }
+
+  .modal-add-to-cart-bar {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .modal-add-to-cart-bar .quantity-selector {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .modal-add-to-cart-bar .primary-action-btn {
+    width: 100% !important;
+  }
+
+  /* Cajón de Carrito en Celular */
+  .cart-drawer-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Sección Hero en Celular */
+  .hero-vibrant-showcase {
+    padding: 20px 0 !important;
+  }
+
+  .hero-primary-col h1 {
+    font-size: 22px !important;
+    line-height: 1.25 !important;
+  }
+
+  .hero-quick-filters-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .products-grid-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
 
