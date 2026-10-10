@@ -29,7 +29,8 @@ import {
   ArrowRight,
   Flame,
   Tag,
-  LayoutDashboard
+  LayoutDashboard,
+  MapPin
 } from 'lucide-react';
 import './App.css';
 
@@ -397,13 +398,20 @@ export default function App() {
           {/* Grilla de Productos */}
           <section className="products-grid-section">
             <div className="container">
-              <div className="catalog-meta-bar">
-                <span className="results-count">
-                  Mostrando <strong>{filteredProducts.length}</strong> productos
-                  {selectedCategory !== 'all' && ` en "${selectedCategory}"`}
-                  {searchTerm && ` para "${searchTerm}"`}
-                  {selectedSede && ` (Sede: ${selectedSede.nombreSede})`}
-                  {!selectedSede && ` (Todas las Sedes)`}
+              <div className="catalog-meta-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
+                <span className="results-count" style={{ fontSize: '15.5px', fontWeight: 700, color: '#991B1B', display: 'flex', alignItems: 'center', gap: '7px' }}>
+                  <MapPin size={17} style={{ color: '#DC2626' }} />
+                  <span>{selectedSede ? selectedSede.nombreSede : 'Todas las Sedes'}</span>
+                  {selectedCategory !== 'all' && (
+                    <span style={{ color: '#64748B', fontWeight: 500, fontSize: '14px' }}>
+                      • {selectedCategory}
+                    </span>
+                  )}
+                  {searchTerm && (
+                    <span style={{ color: '#64748B', fontWeight: 500, fontSize: '14px' }}>
+                      • Búsqueda: "{searchTerm}"
+                    </span>
+                  )}
                 </span>
                 {searchTerm && (
                   <button 
