@@ -78,13 +78,13 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {!isRegister && (
           <div className="demo-credentials-box">
-            <small>Cuentas de Acceso Rápido:</small>
+            <span className="demo-label">Acceso Rápido:</span>
             <div className="demo-btns-row">
-              <button type="button" className="demo-tag" onClick={setDemoAdmin}>
-                Admin General (admin@sanjose.pe)
+              <button type="button" className="demo-shortcut-btn" onClick={setDemoAdmin} title="admin@sanjose.pe">
+                Admin
               </button>
-              <button type="button" className="demo-tag" onClick={setDemoClient}>
-                Cliente Prueba (cliente@gmail.com)
+              <button type="button" className="demo-shortcut-btn" onClick={setDemoClient} title="cliente@gmail.com">
+                Cliente
               </button>
             </div>
           </div>
