@@ -264,3 +264,13 @@ INSERT INTO Detalle_Ventas (ID_Detalle, ID_Venta, ID_Producto, Cantidad, Precio_
 (5, 3, 17, 2, 18.00, 11.70),
 (6, 3, 11, 2, 9.00, 5.85),
 (7, 3, 2, 1, 1.00, 0.65);
+
+-- Vistas de compatibilidad para Linux (evita problemas de mayúsculas/minúsculas con JPA)
+CREATE OR REPLACE VIEW productos AS SELECT * FROM Productos;
+CREATE OR REPLACE VIEW sedes AS SELECT * FROM Sedes;
+CREATE OR REPLACE VIEW usuarios AS SELECT * FROM Usuarios;
+CREATE OR REPLACE VIEW configuracion AS SELECT * FROM Configuracion;
+CREATE OR REPLACE VIEW inventario_sedes AS SELECT * FROM Inventario_Sedes;
+CREATE OR REPLACE VIEW metodos_pago AS SELECT * FROM Metodos_Pago;
+CREATE OR REPLACE VIEW ventas AS SELECT * FROM Ventas;
+CREATE OR REPLACE VIEW detalle_ventas AS SELECT * FROM Detalle_Ventas;
