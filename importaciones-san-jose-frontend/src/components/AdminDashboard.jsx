@@ -1298,31 +1298,20 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                         {/* Parámetros de cada tipo */}
                         <div className="promo-fields-container">
                           {promoTipo === 'descuento_directo' && (
-                            <div className="form-row-2">
-                              <div className="input-group">
-                                <label>Precio de Oferta Especial (S/.) *</label>
-                                <input 
-                                  type="number" 
-                                  step="0.10" 
-                                  min="0.10"
-                                  placeholder={precio ? (parseFloat(precio) * 0.85).toFixed(2) : "11.50"}
-                                  value={precioOferta}
-                                  onChange={(e) => setPrecioOferta(e.target.value)}
-                                  required={isPromoActive}
-                                />
-                                <small className="text-muted">
-                                  Precio normal actual: S/ {precio ? parseFloat(precio).toFixed(2) : '0.00'}
-                                </small>
-                              </div>
-                              <div className="promo-preview-badge-box">
-                                <small>Vista previa en Catálogo:</small>
-                                <span className="promo-badge sale">
-                                  <Tag size={11} /> OFERTA
-                                </span>
-                                <span className="striked-preview">
-                                  Antes: S/ {precio ? parseFloat(precio).toFixed(2) : '15.00'} ➔ Oferta: S/ {precioOferta || '11.50'}
-                                </span>
-                              </div>
+                            <div className="input-group">
+                              <label>Precio de Oferta Especial (S/.) *</label>
+                              <input 
+                                type="number" 
+                                step="0.10" 
+                                min="0.10" 
+                                placeholder={precio ? (parseFloat(precio) * 0.85).toFixed(2) : "11.50"}
+                                value={precioOferta}
+                                onChange={(e) => setPrecioOferta(e.target.value)}
+                                required={isPromoActive}
+                              />
+                              <small className="text-muted">
+                                Precio normal actual: S/ {precio ? parseFloat(precio).toFixed(2) : '0.00'}
+                              </small>
                             </div>
                           )}
 
