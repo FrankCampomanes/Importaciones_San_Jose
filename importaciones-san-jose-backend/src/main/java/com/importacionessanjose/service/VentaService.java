@@ -48,7 +48,7 @@ public class VentaService {
     private final InventarioSedeRepository inventarioRepository;
     private final ConfiguracionService configuracionService;
     private final ComprobanteService comprobanteService;
-    private final CulqiService culqiService;
+    private final MercadoPagoService mercadoPagoService;
 
     public VentaService(VentaRepository ventaRepository,
             DetalleVentaRepository detalleVentaRepository,
@@ -59,7 +59,7 @@ public class VentaService {
             InventarioSedeRepository inventarioRepository,
             ConfiguracionService configuracionService,
             ComprobanteService comprobanteService,
-            CulqiService culqiService) {
+            MercadoPagoService mercadoPagoService) {
         this.ventaRepository = ventaRepository;
         this.detalleVentaRepository = detalleVentaRepository;
         this.productoRepository = productoRepository;
@@ -69,7 +69,7 @@ public class VentaService {
         this.inventarioRepository = inventarioRepository;
         this.configuracionService = configuracionService;
         this.comprobanteService = comprobanteService;
-        this.culqiService = culqiService;
+        this.mercadoPagoService = mercadoPagoService;
     }
 
     // =========================================================
@@ -167,27 +167,27 @@ public class VentaService {
         BigDecimal costoEnvio = calcularCostoEnvio(metodoEntrega, subtotal);
         BigDecimal total = subtotal.add(igv).add(costoEnvio);
 
-        // 8. Validación y procesamiento bancario (Culqi Sandbox / Yape Oficial)
+        // 8. Validación y procesamiento bancario oficial vía Mercado Pago API
         String tipoPago = request.tipoPago() != null ? request.tipoPago().toUpperCase() : "TARJETA";
-        CulqiService.ResultadoPago resultadoPago = null;
+        MercadoPagoService.ResultadoPago resultadoPago = null;
 
         if ("TARJETA".equals(tipoPago)) {
-            String numTarjeta = request.numeroTarjeta() != null ? request.numeroTarjeta() : CulqiService.TEST_CARD_APPROVED;
+            String numTarjeta = request.numeroTarjeta() != null ? request.numeroTarjeta() : "4111111111111111";
             String mes = request.mesExpiracion() != null ? request.mesExpiracion() : "12";
             String anio = request.anioExpiracion() != null ? request.anioExpiracion() : "2028";
             String cvv = request.cvv() != null ? request.cvv() : "123";
             String titular = request.titularTarjeta() != null ? request.titularTarjeta() : usuario.getNombreCompleto();
 
-            resultadoPago = culqiService.procesarTarjeta(numTarjeta, mes, anio, cvv, titular, total, usuario.getCorreo());
+            resultadoPago = mercadoPagoService.procesarTarjeta(numTarjeta, mes, anio, cvv, titular, total, usuario.getCorreo());
         } else if ("YAPE".equals(tipoPago)) {
             String telefono = request.yapeTelefono() != null && !request.yapeTelefono().isBlank()
                     ? request.yapeTelefono()
                     : (usuario.getTelefono() != null ? usuario.getTelefono() : "987654321");
             String otp = request.yapeOtp() != null && !request.yapeOtp().isBlank()
                     ? request.yapeOtp()
-                    : (request.codigoOperacion() != null ? request.codigoOperacion() : CulqiService.TEST_YAPE_OTP_APPROVED);
+                    : (request.codigoOperacion() != null ? request.codigoOperacion() : "123456");
 
-            resultadoPago = culqiService.procesarYape(telefono, otp, total, usuario.getCorreo());
+            resultadoPago = mercadoPagoService.procesarYape(telefono, otp, total, usuario.getCorreo());
         }
 
         // 9. Generar comprobante

@@ -180,8 +180,8 @@ INSERT INTO Configuracion (Clave, Valor, Descripcion, Tipo) VALUES
 ('DELIVERY_COSTO_FIJO', '2.00', 'Costo estándar de delivery si no supera el umbral', 'DECIMAL'),
 ('DELIVERY_LIMA_METROPOLITANA', 'true', 'Habilitación de cobertura para Lima Norte y Callao', 'BOOLEANO'),
 ('ADMIN_REGISTRATION_KEY', 'ROSES080816', 'Clave requerida para registro de administradores', 'TEXTO'),
-('CULQI_PUBLIC_KEY', 'pk_test_sample12345678', 'Llave pública de Culqi Sandbox para tokenización frontend', 'TEXTO'),
-('CULQI_SECRET_KEY', 'sk_test_sample12345678', 'Llave secreta de Culqi Sandbox para cargos en backend', 'TEXTO');
+('MERCADOPAGO_PUBLIC_KEY', 'TEST-cfd28cb2-df82-4c40-8ae6-f6a34949df20', 'Llave pública oficial Mercado Pago Sandbox', 'TEXTO'),
+('MERCADOPAGO_ACCESS_TOKEN', 'TEST-7077188188231241-100920-f7cb1accb0dd553f6e12b85653fcc76d-3750642607', 'Access Token oficial Mercado Pago Sandbox para cargos', 'TEXTO');
 
 -- Sedes Oficiales
 INSERT INTO Sedes (ID_Sede, Nombre_Sede, Direccion, Distrito, Provincia, Telefono, Horario_Atencion) VALUES

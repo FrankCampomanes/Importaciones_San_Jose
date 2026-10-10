@@ -64,17 +64,17 @@ public class ConfiguracionService {
                 .orElse("ROSES080816");
     }
 
-    public String getCulqiPublicKey() {
-        return repository.findByClave("CULQI_PUBLIC_KEY")
+    public String getMercadoPagoPublicKey() {
+        return repository.findByClave("MERCADOPAGO_PUBLIC_KEY")
                 .filter(Configuracion::getActivo)
                 .map(Configuracion::getValor)
-                .orElse("pk_test_sample12345678");
+                .orElse("TEST-cfd28cb2-df82-4c40-8ae6-f6a34949df20");
     }
 
-    public String getCulqiSecretKey() {
-        return repository.findByClave("CULQI_SECRET_KEY")
+    public String getMercadoPagoAccessToken() {
+        return repository.findByClave("MERCADOPAGO_ACCESS_TOKEN")
                 .filter(Configuracion::getActivo)
                 .map(Configuracion::getValor)
-                .orElse("sk_test_sample12345678");
+                .orElse("TEST-7077188188231241-100920-f7cb1accb0dd553f6e12b85653fcc76d-3750642607");
     }
 }
