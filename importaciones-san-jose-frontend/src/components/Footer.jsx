@@ -1,13 +1,13 @@
 import React from 'react';
-import { 
-  Building2, 
-  MapPin, 
-  Phone, 
-  Clock, 
-  ShieldCheck, 
-  Truck, 
-  CreditCard, 
-  Globe, 
+import {
+  Building2,
+  MapPin,
+  Phone,
+  Clock,
+  ShieldCheck,
+  Truck,
+  CreditCard,
+  Globe,
   Sparkles,
   MessageCircle
 } from 'lucide-react';
@@ -29,8 +29,8 @@ export default function Footer({ sedes, onSelectSede }) {
 
           <div className="sedes-grid">
             {sedes.map((sede) => (
-              <div 
-                key={sede.id} 
+              <div
+                key={sede.id}
                 className="sede-card glass-panel"
                 onClick={() => onSelectSede && onSelectSede(sede)}
               >
@@ -67,16 +67,16 @@ export default function Footer({ sedes, onSelectSede }) {
           {/* Columna Marca */}
           <div className="footer-brand-col">
             <div className="footer-logo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img 
-                src="/images/Logo.png" 
-                alt="Logo Oficial" 
+              <img
+                src="/images/Logo.png"
+                alt="Logo Oficial"
                 style={{ height: '32px', width: 'auto', objectFit: 'contain' }}
               />
               <strong className="brand-title-sm">GRUPO IMPORTACIONES SAN JOSÉ S.R.L.</strong>
             </div>
             <p className="footer-desc">
-              Empresa peruana constituida con <strong>RUC 20607725731</strong>. 
-              Más de 5 años ofreciendo variedad de artículos para el hogar, juguetes, 
+              Empresa peruana constituida con <strong>RUC 20607725731</strong>.
+              Más de 5 años ofreciendo variedad de artículos para el hogar, juguetes,
               útiles, belleza y novedades de temporada con los precios más competitivos.
             </p>
             <div className="company-badge-box">
@@ -114,10 +114,10 @@ export default function Footer({ sedes, onSelectSede }) {
             <ul className="footer-list">
               <li>
                 <MessageCircle size={16} className="text-green" />
-                <a 
+                <a
                   href={`https://wa.me/${WHATSAPP_NUM}?text=Hola%20Importaciones%20San%20Jos%C3%A9,%20deseo%20consultar%20sobre%20un%20pedido`}
-                  target="_blank" 
-                  rel="noreferrer" 
+                  target="_blank"
+                  rel="noreferrer"
                   className="social-link"
                 >
                   WhatsApp: <strong>{WHATSAPP_DISPLAY}</strong>
@@ -125,9 +125,9 @@ export default function Footer({ sedes, onSelectSede }) {
               </li>
               <li>
                 <Globe size={16} />
-                <a 
-                  href="https://www.facebook.com/people/Imp-San-Jose-Olivos/61561207173879/" 
-                  target="_blank" 
+                <a
+                  href="https://www.facebook.com/people/Imp-San-Jose-Olivos/61561207173879/"
+                  target="_blank"
                   rel="noreferrer"
                   className="social-link"
                 >
