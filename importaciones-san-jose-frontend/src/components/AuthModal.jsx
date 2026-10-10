@@ -76,6 +76,20 @@ export default function AuthModal({ isOpen, onClose }) {
           </div>
         )}
 
+        {!isRegister && (
+          <div className="demo-credentials-box">
+            <small>Cuentas de Acceso Rápido:</small>
+            <div className="demo-btns-row">
+              <button type="button" className="demo-tag" onClick={setDemoAdmin}>
+                Admin General (admin@sanjose.pe)
+              </button>
+              <button type="button" className="demo-tag" onClick={setDemoClient}>
+                Cliente Prueba (cliente@gmail.com)
+              </button>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="auth-form" style={{ marginTop: '10px' }}>
           {isRegister && (
             <>
