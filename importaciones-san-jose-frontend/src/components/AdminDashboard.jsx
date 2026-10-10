@@ -264,7 +264,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
       if (editingProduct) {
         await api.updateProduct(editingProduct.id, productPayload, token);
         savedProdId = editingProduct.id;
-        setFeedback({ type: 'success', text: `¡"${nombre}" actualizado con éxito en MySQL!` });
+        setFeedback({ type: 'success', text: `¡"${nombre}" actualizado con éxito!` });
       } else {
         const nuevo = await api.createProduct(productPayload, token);
         if (nuevo && nuevo.id) {
@@ -303,7 +303,10 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
             fechaFin: fechaFinPromo || null
           }, token);
         } else {
-          await promotionsService.removeForProduct(savedProdId, existingPromo?.id, token);
+          const promoToDel = promotionsService.getForProduct(savedProdId);
+          if (promoToDel) {
+            await promotionsService.removeForProduct(savedProdId, promoToDel.id, token);
+          }
         }
       }
 
@@ -311,7 +314,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
       await loadFullInventory();
       setIsModalOpen(false);
     } catch (err) {
-      setFeedback({ type: 'error', text: 'Error al guardar: ' + err.message });
+      setFeedback({ type: 'error', text: 'Error al guardar: ' + (err.message || 'Ocurrió un error inesperado.') });
     } finally {
       setLoading(false);
     }
@@ -357,15 +360,16 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
     setLoading(true);
     try {
       for (const sede of sedes) {
-        const qty = parseInt(inventoryStocks[sede.id] ?? 0);
-        await api.updateInventoryStock(selectedProductInventory.id, sede.id, qty, token).catch(() => {});
+        const raw = inventoryStocks[sede.id];
+        const qty = raw === '' || raw === undefined ? 0 : parseInt(raw, 10) || 0;
+        await api.updateInventoryStock(selectedProductInventory.id, sede.id, qty, token);
       }
       setFeedback({ type: 'success', text: `Stock de "${selectedProductInventory.nombre}" actualizado en las 5 sedes.` });
       setSelectedProductInventory(null);
       await onRefreshProducts();
       await loadFullInventory();
     } catch (e) {
-      setFeedback({ type: 'error', text: 'Error actualizando stock: ' + e.message });
+      setFeedback({ type: 'error', text: 'Error actualizando stock: ' + (e.message || 'Error de conexión.') });
     } finally {
       setLoading(false);
     }
@@ -630,13 +634,13 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
             <div className="table-header-info flex-between" style={{ flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
               <div>
                 <h3 style={{ margin: 0 }}>Matriz de Existencias por Sede Física (En Tiempo Real)</h3>
-                <p style={{ margin: '4px 0 0 0' }}>Control de unidades en MySQL sincronizado en vivo para las 5 sedes comerciales.</p>
+                <p style={{ margin: '4px 0 0 0' }}>Control de inventario sincronizado en vivo para las 5 sedes comerciales.</p>
               </div>
               <button 
                 className="refresh-btn" 
                 onClick={loadFullInventory} 
                 disabled={inventoryLoading}
-                title="Sincronizar stock con MySQL"
+                title="Sincronizar inventario"
               >
                 <RefreshCw size={15} className={inventoryLoading ? 'spin-anim' : ''} />
                 <span>{inventoryLoading ? 'Sincronizando...' : 'Recargar Inventario'}</span>
@@ -743,7 +747,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                   Consolidado financiero contable, ventas por sedes físicas, análisis de rotación de productos y registro de comprobantes.
                 </p>
               </div>
-              <button className="refresh-btn" onClick={loadReports} title="Sincronizar métricas con MySQL">
+              <button className="refresh-btn" onClick={loadReports} title="Sincronizar métricas">
                 <RefreshCw size={15} />
                 <span>Recalcular Mes</span>
               </button>
@@ -1006,7 +1010,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                   Gestión de Envíos & Delivery a Domicilio
                 </h3>
                 <p className="text-muted" style={{ margin: '5px 0 0 0', fontSize: '13px' }}>
-                  Control exclusivo de pedidos con modalidad Delivery. Monitorea y actualiza el estado de despacho en tiempo real con impacto directo en MySQL.
+                  Control exclusivo de pedidos con modalidad Delivery. Monitorea y actualiza el estado de despacho en tiempo real.
                 </p>
               </div>
               <button className="refresh-btn" onClick={loadReports} title="Actualizar lista de envíos">
@@ -1455,7 +1459,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                 </button>
                 <button type="submit" className="primary-action-btn" disabled={loading}>
                   <Save size={18} />
-                  <span>{loading ? 'Guardando en MySQL...' : editingProduct ? 'Actualizar Producto' : 'Guardar Producto en Catálogo'}</span>
+                  <span>{loading ? 'Guardando...' : editingProduct ? 'Actualizar Producto' : 'Guardar Producto en Catálogo'}</span>
                 </button>
               </div>
             </form>
@@ -1489,8 +1493,11 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                   <div className="stock-input-wrap">
                     <input 
                       type="number" min="0"
-                      value={inventoryStocks[1] ?? 15}
-                      onChange={(e) => setInventoryStocks({ ...inventoryStocks, 1: parseInt(e.target.value) || 0 })}
+                      value={inventoryStocks[1] !== undefined ? inventoryStocks[1] : ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setInventoryStocks(prev => ({ ...prev, 1: val === '' ? '' : parseInt(val, 10) || 0 }));
+                      }}
                     />
                     <span>unidades</span>
                   </div>
@@ -1504,8 +1511,11 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                   <div className="stock-input-wrap">
                     <input 
                       type="number" min="0"
-                      value={inventoryStocks[2] ?? 15}
-                      onChange={(e) => setInventoryStocks({ ...inventoryStocks, 2: parseInt(e.target.value) || 0 })}
+                      value={inventoryStocks[2] !== undefined ? inventoryStocks[2] : ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setInventoryStocks(prev => ({ ...prev, 2: val === '' ? '' : parseInt(val, 10) || 0 }));
+                      }}
                     />
                     <span>unidades</span>
                   </div>
@@ -1519,8 +1529,11 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                   <div className="stock-input-wrap">
                     <input 
                       type="number" min="0"
-                      value={inventoryStocks[3] ?? 10}
-                      onChange={(e) => setInventoryStocks({ ...inventoryStocks, 3: parseInt(e.target.value) || 0 })}
+                      value={inventoryStocks[3] !== undefined ? inventoryStocks[3] : ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setInventoryStocks(prev => ({ ...prev, 3: val === '' ? '' : parseInt(val, 10) || 0 }));
+                      }}
                     />
                     <span>unidades</span>
                   </div>
@@ -1534,8 +1547,11 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                   <div className="stock-input-wrap">
                     <input 
                       type="number" min="0"
-                      value={inventoryStocks[4] ?? 10}
-                      onChange={(e) => setInventoryStocks({ ...inventoryStocks, 4: parseInt(e.target.value) || 0 })}
+                      value={inventoryStocks[4] !== undefined ? inventoryStocks[4] : ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setInventoryStocks(prev => ({ ...prev, 4: val === '' ? '' : parseInt(val, 10) || 0 }));
+                      }}
                     />
                     <span>unidades</span>
                   </div>
@@ -1549,8 +1565,11 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                   <div className="stock-input-wrap">
                     <input 
                       type="number" min="0"
-                      value={inventoryStocks[5] ?? 10}
-                      onChange={(e) => setInventoryStocks({ ...inventoryStocks, 5: parseInt(e.target.value) || 0 })}
+                      value={inventoryStocks[5] !== undefined ? inventoryStocks[5] : ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setInventoryStocks(prev => ({ ...prev, 5: val === '' ? '' : parseInt(val, 10) || 0 }));
+                      }}
                     />
                     <span>unidades</span>
                   </div>
@@ -1563,7 +1582,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                 </button>
                 <button type="button" className="primary-action-btn" onClick={handleSaveInventory} disabled={loading}>
                   <Save size={16} />
-                  <span>{loading ? 'Actualizando...' : 'Guardar Stock en MySQL'}</span>
+                  <span>{loading ? 'Guardando...' : 'Guardar Stock'}</span>
                 </button>
               </div>
             </div>

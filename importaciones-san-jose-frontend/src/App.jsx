@@ -9,6 +9,7 @@ import MyPurchasesModal from './components/MyPurchasesModal';
 import UserProfileModal from './components/UserProfileModal';
 import AdminDashboard from './components/AdminDashboard';
 import Footer from './components/Footer';
+import TermsModal from './components/TermsModal';
 import { api } from './services/api';
 import { useAuth } from './context/AuthContext';
 import { useCart } from './context/CartContext';
@@ -66,6 +67,7 @@ export default function App() {
   const [isMyPurchasesOpen, setIsMyPurchasesOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileInitialTab, setProfileInitialTab] = useState('datos');
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [, setPromosTick] = useState(0);
 
@@ -321,8 +323,7 @@ export default function App() {
 
               {loading ? (
                 <div className="catalog-loading-state">
-                  <div className="spinner"></div>
-                  <p>Cargando productos de portada...</p>
+                  <div className="spinner-red-ring" title="Cargando productos..."></div>
                 </div>
               ) : (
                 <div className="products-grid-layout">
@@ -425,8 +426,7 @@ export default function App() {
 
               {loading ? (
                 <div className="catalog-loading-state">
-                  <div className="spinner"></div>
-                  <p>Cargando catálogo...</p>
+                  <div className="spinner-red-ring" title="Cargando productos..."></div>
                 </div>
               ) : filteredProducts.length === 0 ? (
                 <div className="catalog-empty-search glass-panel">
@@ -471,7 +471,11 @@ export default function App() {
       )}
 
       {/* Footer Corporativo Oficial */}
-      <Footer sedes={sedes} onSelectSede={(s) => setSelectedSede(s)} />
+      <Footer 
+        sedes={sedes} 
+        onSelectSede={(s) => setSelectedSede(s)} 
+        onOpenTerms={() => setIsTermsOpen(true)}
+      />
 
       {/* Modales y Drawers */}
       <CartDrawer 
@@ -507,6 +511,11 @@ export default function App() {
         isOpen={isProfileOpen}
         initialTab={profileInitialTab}
         onClose={() => setIsProfileOpen(false)}
+      />
+
+      <TermsModal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
       />
     </div>
   );

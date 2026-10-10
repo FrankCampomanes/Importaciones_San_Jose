@@ -84,8 +84,17 @@ public class InventarioService {
     @Transactional
     public InventarioResponse actualizarStock(Integer sedeId, Integer productoId, ActualizarStockRequest request) {
         InventarioSede inv = inventarioRepository.findBySedeIdAndProductoId(sedeId, productoId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No existe inventario para sede " + sedeId + " y producto " + productoId));
+                .orElseGet(() -> {
+                    Sede sede = sedeRepository.findById(sedeId)
+                            .orElseThrow(() -> ResourceNotFoundException.of("Sede", sedeId));
+                    Producto producto = productoRepository.findById(productoId)
+                            .orElseThrow(() -> ResourceNotFoundException.of("Producto", productoId));
+                    InventarioSede nuevo = new InventarioSede();
+                    nuevo.setSede(sede);
+                    nuevo.setProducto(producto);
+                    nuevo.setStockActual(0);
+                    return nuevo;
+                });
         inv.setStockActual(request.stockActual());
         InventarioSede guardado = inventarioRepository.save(inv);
         return toResponse(guardado);

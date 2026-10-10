@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Mail, Lock, User, Phone, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import TermsModal from './TermsModal';
 
 export default function AuthModal({ isOpen, onClose }) {
   const { login } = useAuth();
@@ -14,6 +15,8 @@ export default function AuthModal({ isOpen, onClose }) {
   const [claveAdmin, setClaveAdmin] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   if (!isOpen) return null;
 
@@ -24,6 +27,12 @@ export default function AuthModal({ isOpen, onClose }) {
 
     try {
       if (isRegister) {
+        if (!acceptedTerms) {
+          setError('Debes aceptar los Términos y Condiciones y la Política de Privacidad de Datos para registrarte.');
+          setLoading(false);
+          return;
+        }
+
         const payload = {
           nombreCompleto,
           correo,
@@ -60,146 +69,181 @@ export default function AuthModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>{isRegister ? 'Crear Nueva Cuenta' : 'Iniciar Sesión'}</h3>
-          <button className="modal-close-btn" onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
-
-        {error && (
-          <div className="alert-error">
-            <AlertCircle size={16} />
-            <span>{error}</span>
+    <>
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-content glass-panel" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h3>{isRegister ? 'Crear Nueva Cuenta' : 'Iniciar Sesión'}</h3>
+            <button className="modal-close-btn" onClick={onClose}>
+              <X size={20} />
+            </button>
           </div>
-        )}
 
-        {!isRegister && (
-          <div className="demo-credentials-box">
-            <span className="demo-label">Acceso Rápido:</span>
-            <div className="demo-btns-row">
-              <button type="button" className="demo-shortcut-btn" onClick={setDemoAdmin} title="admin@sanjose.pe">
-                Admin
-              </button>
-              <button type="button" className="demo-shortcut-btn" onClick={setDemoClient} title="cliente@gmail.com">
-                Cliente
-              </button>
+          {error && (
+            <div className="alert-error">
+              <AlertCircle size={16} />
+              <span>{error}</span>
             </div>
-          </div>
-        )}
+          )}
 
-        <form onSubmit={handleSubmit} className="auth-form" style={{ marginTop: '10px' }}>
-          {isRegister && (
-            <>
-              <div className="input-group">
-                <label>Tipo de Cuenta</label>
-                <div className="doc-type-toggle" style={{ marginBottom: '6px' }}>
-                  <button 
-                    type="button" 
-                    className={rol === 'Cliente' ? 'active' : ''}
-                    onClick={() => { setRol('Cliente'); setClaveAdmin(''); }}
-                  >
-                    Cliente
-                  </button>
-                  <button 
-                    type="button" 
-                    className={rol === 'Admin' ? 'active' : ''}
-                    onClick={() => setRol('Admin')}
-                  >
-                    Administrador
-                  </button>
-                </div>
+          {!isRegister && (
+            <div className="demo-credentials-box">
+              <span className="demo-label">Acceso Rápido:</span>
+              <div className="demo-btns-row">
+                <button type="button" className="demo-shortcut-btn" onClick={setDemoAdmin} title="admin@sanjose.pe">
+                  Admin
+                </button>
+                <button type="button" className="demo-shortcut-btn" onClick={setDemoClient} title="cliente@gmail.com">
+                  Cliente
+                </button>
               </div>
+            </div>
+          )}
 
-              <div className="input-group">
-                <label>Nombre Completo</label>
-                <div className="input-with-icon">
-                  <User size={18} />
-                  <input 
-                    type="text" 
-                    required 
-                    value={nombreCompleto}
-                    onChange={(e) => setNombreCompleto(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''))}
-                  />
-                </div>
-              </div>
-
-              <div className="input-group">
-                <label>Teléfono / Celular</label>
-                <div className="input-with-icon">
-                  <Phone size={18} />
-                  <input 
-                    type="tel" 
-                    required
-                    maxLength="9"
-                    value={telefono}
-                    onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
-                  />
-                </div>
-              </div>
-
-              {rol === 'Admin' && (
+          <form onSubmit={handleSubmit} className="auth-form" style={{ marginTop: '10px' }}>
+            {isRegister && (
+              <>
                 <div className="input-group">
-                  <label>Clave de Autorización</label>
+                  <label>Tipo de Cuenta</label>
+                  <div className="doc-type-toggle" style={{ marginBottom: '6px' }}>
+                    <button 
+                      type="button" 
+                      className={rol === 'Cliente' ? 'active' : ''}
+                      onClick={() => { setRol('Cliente'); setClaveAdmin(''); }}
+                    >
+                      Cliente
+                    </button>
+                    <button 
+                      type="button" 
+                      className={rol === 'Admin' ? 'active' : ''}
+                      onClick={() => setRol('Admin')}
+                    >
+                      Administrador
+                    </button>
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label>Nombre Completo</label>
                   <div className="input-with-icon">
-                    <Lock size={18} />
+                    <User size={18} />
                     <input 
-                      type="password" 
+                      type="text" 
                       required 
-                      placeholder="Ingresa la clave de la empresa"
-                      value={claveAdmin}
-                      onChange={(e) => setClaveAdmin(e.target.value)}
+                      value={nombreCompleto}
+                      onChange={(e) => setNombreCompleto(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ''))}
                     />
                   </div>
                 </div>
-              )}
-            </>
-          )}
 
-          <div className="input-group">
-            <label>Correo Electrónico</label>
-            <div className="input-with-icon">
-              <Mail size={18} />
-              <input 
-                type="email" 
-                required 
-                value={correo}
-                onChange={(e) => setCorreo(e.target.value)}
-              />
+                <div className="input-group">
+                  <label>Teléfono / Celular</label>
+                  <div className="input-with-icon">
+                    <Phone size={18} />
+                    <input 
+                      type="tel" 
+                      required
+                      maxLength="9"
+                      value={telefono}
+                      onChange={(e) => setTelefono(e.target.value.replace(/\D/g, ''))}
+                    />
+                  </div>
+                </div>
+
+                {rol === 'Admin' && (
+                  <div className="input-group">
+                    <label>Clave de Autorización</label>
+                    <div className="input-with-icon">
+                      <Lock size={18} />
+                      <input 
+                        type="password" 
+                        required 
+                        placeholder="Ingresa la clave de la empresa"
+                        value={claveAdmin}
+                        onChange={(e) => setClaveAdmin(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            <div className="input-group">
+              <label>Correo Electrónico</label>
+              <div className="input-with-icon">
+                <Mail size={18} />
+                <input 
+                  type="email" 
+                  required 
+                  value={correo}
+                  onChange={(e) => setCorreo(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="input-group">
-            <label>Contraseña</label>
-            <div className="input-with-icon">
-              <Lock size={18} />
-              <input 
-                type="password" 
-                required 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+            <div className="input-group">
+              <label>Contraseña</label>
+              <div className="input-with-icon">
+                <Lock size={18} />
+                <input 
+                  type="password" 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
             </div>
+
+            {isRegister && (
+              <div style={{ margin: '14px 0 8px 0', display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px', color: '#475569' }}>
+                <input
+                  type="checkbox"
+                  id="auth-legal-terms-check"
+                  checked={acceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
+                  style={{ marginTop: '2px', cursor: 'pointer', width: '16px', height: '16px', accentColor: '#e11d48' }}
+                />
+                <label htmlFor="auth-legal-terms-check" style={{ cursor: 'pointer', lineHeight: '1.4' }}>
+                  He leído y acepto los{' '}
+                  <button
+                    type="button"
+                    onClick={() => setIsTermsOpen(true)}
+                    style={{ background: 'none', border: 'none', padding: 0, color: '#e11d48', textDecoration: 'underline', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    Términos y Condiciones
+                  </button>
+                  {' '}y la{' '}
+                  <button
+                    type="button"
+                    onClick={() => setIsTermsOpen(true)}
+                    style={{ background: 'none', border: 'none', padding: 0, color: '#e11d48', textDecoration: 'underline', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    Política de Privacidad
+                  </button>
+                  {' '}(Ley N.° 29733 y D.S. 016-2024-JUS).
+                </label>
+              </div>
+            )}
+
+            <button type="submit" className="primary-action-btn full-width" disabled={loading} style={{ marginTop: '8px' }}>
+              {loading ? 'Verificando...' : isRegister ? 'Registrarme' : 'Ingresar'}
+            </button>
+          </form>
+
+          <div className="modal-footer-switch">
+            <span>{isRegister ? '¿Ya tienes una cuenta?' : '¿No tienes cuenta?'}</span>
+            <button 
+              type="button" 
+              className="link-btn"
+              onClick={() => { setIsRegister(!isRegister); setError(null); }}
+            >
+              {isRegister ? 'Iniciar Sesión' : 'Crear Cuenta'}
+            </button>
           </div>
-
-          <button type="submit" className="primary-action-btn full-width" disabled={loading} style={{ marginTop: '8px' }}>
-            {loading ? 'Verificando...' : isRegister ? 'Registrarme' : 'Ingresar'}
-          </button>
-        </form>
-
-        <div className="modal-footer-switch">
-          <span>{isRegister ? '¿Ya tienes una cuenta?' : '¿No tienes cuenta?'}</span>
-          <button 
-            type="button" 
-            className="link-btn"
-            onClick={() => setIsRegister(!isRegister)}
-          >
-            {isRegister ? 'Iniciar Sesión' : 'Crear Cuenta'}
-          </button>
         </div>
       </div>
-    </div>
+
+      <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
+    </>
   );
 }

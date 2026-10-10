@@ -3763,5 +3763,31 @@
   }
 }
 
+/* ─────────── SPINNER CIRCULAR ROJO GIRATORIO (SAN JOSÉ) ─────────── */
+.catalog-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  min-height: 200px;
+}
+
+.spinner-red-ring {
+  width: 44px;
+  height: 44px;
+  border: 4px solid rgba(225, 29, 72, 0.15);
+  border-top-color: #800020;
+  border-right-color: #e11d48;
+  border-radius: 50%;
+  animation: sj-spin-anim 0.8s linear infinite;
+  display: inline-block;
+}
+
+@keyframes sj-spin-anim {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 
 

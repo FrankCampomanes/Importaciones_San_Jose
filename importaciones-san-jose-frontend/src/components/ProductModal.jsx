@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ShoppingCart, QrCode, MapPin, Truck, Tag, Gift, Percent } from 'lucide-react';
+import { X, ShoppingCart, QrCode, MapPin, Truck, Tag, Gift, Percent, Share2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { promotionsService } from '../services/promotions';
 
@@ -7,8 +7,30 @@ export default function ProductModal({ product, onClose, selectedSede }) {
   const { addToCart, getItemPricing } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [imgError, setImgError] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   if (!product) return null;
+
+  const handleShare = async () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://importaciones-san-jose.vercel.app';
+    const shareUrl = `${origin}/?qr=${product.codigoQr || product.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${product.nombre} - Importaciones San José`,
+          text: `Mira ${product.nombre} a solo S/ ${Number(product.precio).toFixed(2)} en Importaciones San José:`,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {}
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
 
   const hasLocalImage = product.imagenUrl && product.imagenUrl.startsWith('/images/products/') && !imgError;
   const pricing = getItemPricing ? getItemPricing({ ...product, cantidad: quantity }) : { lineTotal: product.precio * quantity, promoDescription: null };
@@ -58,23 +80,75 @@ export default function ProductModal({ product, onClose, selectedSede }) {
                 </div>
               )}
             </div>
-            {product.codigoQr && (
-              <div className="modal-qr-preview" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '15px', padding: '15px', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
-                <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#374151', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <QrCode size={16} className="brand-red" />
-                  Escanea para ver en celular
-                </h4>
-                <div style={{ background: '#FFF', padding: '10px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(
-                      `${typeof window !== 'undefined' ? window.location.origin : 'https://importaciones-san-jose.vercel.app'}/?qr=${product.codigoQr}`
-                    )}`}
-                    alt={`QR de ${product.nombre}`}
-                    style={{ width: '120px', height: '120px', display: 'block' }}
-                  />
-                </div>
+            <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="btn-secondary-link"
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '8px 12px',
+                    fontSize: '13px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#f8fafc',
+                    cursor: 'pointer'
+                  }}
+                  title="Compartir enlace del producto"
+                >
+                  <Share2 size={15} className="brand-red" />
+                  <span>{copied ? '¡Enlace Copiado!' : 'Compartir Producto'}</span>
+                </button>
+
+                {product.codigoQr && (
+                  <button
+                    type="button"
+                    onClick={() => setShowQr(!showQr)}
+                    className="btn-secondary-link"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      padding: '8px 12px',
+                      fontSize: '13px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: showQr ? '#fee2e2' : '#f8fafc',
+                      color: showQr ? '#991b1b' : '#334155',
+                      cursor: 'pointer'
+                    }}
+                    title="Ver etiqueta QR para tienda física"
+                  >
+                    <QrCode size={15} />
+                    <span>{showQr ? 'Ocultar QR' : 'Etiqueta QR'}</span>
+                  </button>
+                )}
               </div>
-            )}
+
+              {showQr && product.codigoQr && (
+                <div className="modal-qr-preview" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                  <div style={{ fontSize: '11.5px', color: '#64748b', marginBottom: '8px', textAlign: 'center' }}>
+                    Etiqueta QR de estante para escaneo físico en sedes
+                  </div>
+                  <div style={{ background: '#FFF', padding: '8px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${encodeURIComponent(
+                        `${typeof window !== 'undefined' ? window.location.origin : 'https://importaciones-san-jose.vercel.app'}/?qr=${product.codigoQr}`
+                      )}`}
+                      alt={`QR de ${product.nombre}`}
+                      style={{ width: '120px', height: '120px', display: 'block' }}
+                    />
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '6px' }}>Código: {product.codigoQr}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Detalles */}

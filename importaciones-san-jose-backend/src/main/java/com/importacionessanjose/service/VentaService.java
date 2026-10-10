@@ -159,13 +159,15 @@ public class VentaService {
             subtotal = subtotal.add(subtotalLinea);
         }
 
-        // 7. Calcular IGV y delivery
+        // 7. Calcular IGV (ya incluido en precio minorista SUNAT/INDECOPI) y costo de envío
         BigDecimal igvPorcentaje = configuracionService.getIgvPorcentaje();
-        BigDecimal igv = subtotal.multiply(igvPorcentaje)
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        BigDecimal totalProductos = subtotal; // Suma exacta de precios de catálogo con IGV incluido
+        BigDecimal factorIgv = BigDecimal.ONE.add(igvPorcentaje.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP));
+        BigDecimal baseImponible = totalProductos.divide(factorIgv, 2, RoundingMode.HALF_UP);
+        BigDecimal igv = totalProductos.subtract(baseImponible);
 
-        BigDecimal costoEnvio = calcularCostoEnvio(metodoEntrega, subtotal);
-        BigDecimal total = subtotal.add(igv).add(costoEnvio);
+        BigDecimal costoEnvio = calcularCostoEnvio(metodoEntrega, totalProductos);
+        BigDecimal total = totalProductos.add(costoEnvio);
 
         // 8. Validación y procesamiento bancario oficial vía Mercado Pago API
         String tipoPago = request.tipoPago() != null ? request.tipoPago().toUpperCase() : "TARJETA";
@@ -203,7 +205,7 @@ public class VentaService {
         venta.setDistritoEnvio(request.distritoEnvio());
         venta.setReferenciaEnvio(request.referenciaEnvio());
         venta.setFechaHora(LocalDateTime.now());
-        venta.setSubtotal(subtotal);
+        venta.setSubtotal(baseImponible);
         venta.setIgv(igv);
         venta.setCostoEnvio(costoEnvio);
         venta.setTotal(total);

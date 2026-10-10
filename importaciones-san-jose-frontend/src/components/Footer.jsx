@@ -12,7 +12,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 
-export default function Footer({ sedes, onSelectSede }) {
+export default function Footer({ sedes, onSelectSede, onOpenTerms }) {
   const WHATSAPP_NUM = "51926577602";
   const WHATSAPP_DISPLAY = "+51 926 577 602";
 
@@ -138,15 +138,44 @@ export default function Footer({ sedes, onSelectSede }) {
                 <MapPin size={16} />
                 <span>Domicilio Fiscal: Mza. B Lote 9, Coop. San Lorenzo, Puente Piedra, Lima</span>
               </li>
+              <li>
+                <ShieldCheck size={16} style={{ color: '#e11d48' }} />
+                <button
+                  type="button"
+                  onClick={onOpenTerms}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#93c5fd',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    padding: 0,
+                    font: 'inherit',
+                    fontSize: '13.5px',
+                    textAlign: 'left'
+                  }}
+                >
+                  Términos, Condiciones y Privacidad (Ley N.° 29733)
+                </button>
+              </li>
             </ul>
           </div>
         </div>
 
         {/* Copyright */}
         <div className="footer-copyright-bar">
-          <div className="container flex-between">
+          <div className="container flex-between" style={{ flexWrap: 'wrap', gap: '8px' }}>
             <span>© {new Date().getFullYear()} Grupo Importaciones San José S.R.L. — Todos los derechos reservados.</span>
-            <span>RUC 20607725731 • WhatsApp: {WHATSAPP_DISPLAY}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button
+                type="button"
+                onClick={onOpenTerms}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', textDecoration: 'underline', cursor: 'pointer', fontSize: '12px', padding: 0 }}
+              >
+                Términos y Privacidad
+              </button>
+              <span>• RUC 20607725731</span>
+            </div>
           </div>
         </div>
       </div>

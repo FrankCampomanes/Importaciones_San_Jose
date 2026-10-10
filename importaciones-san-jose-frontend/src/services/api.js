@@ -74,15 +74,19 @@ export const api = {
   },
 
   async updateInventoryStock(productId, sedeId, stock, token) {
+    const numStock = parseInt(stock, 10) || 0;
     const res = await fetch(`${API_BASE}/inventory/product/${productId}/sede/${sedeId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ nuevoStock: stock })
+      body: JSON.stringify({ stockActual: numStock, nuevoStock: numStock })
     });
-    if (!res.ok) throw new Error('Error actualizando stock');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Error actualizando stock');
+    }
     return await res.json();
   },
 
