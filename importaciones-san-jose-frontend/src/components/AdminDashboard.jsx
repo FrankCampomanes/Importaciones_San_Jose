@@ -1374,26 +1374,9 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                           )}
                         </div>
 
-                        {/* Motivo o Descripción Personalizada / Automática */}
+                        {/* Motivo o Descripción Personalizada */}
                         <div className="input-group mt-2">
-                          <div className="flex-between">
-                            <label>Mensaje o Motivo de la Promoción (opcional):</label>
-                            <button
-                              type="button"
-                              className="btn-auto-text-link"
-                              onClick={() => {
-                                if (promoTipo === 'descuento_directo') {
-                                  setMotivoPromo('¡Precio rebajado por oferta especial!');
-                                } else if (promoTipo === 'descuento_volumen') {
-                                  setMotivoPromo(`A partir de ${cantidadMinimaVolumen} unidades, ${porcentajeDescuentoVolumen}% de descuento`);
-                                } else if (promoTipo === 'bonificacion') {
-                                  setMotivoPromo(`Por la compra de ${llevaCantidad} unidades, te regalamos ${regaloCantidad} gratis`);
-                                }
-                              }}
-                            >
-                              ⚡ Generar texto automático
-                            </button>
-                          </div>
+                          <label>Mensaje o Motivo de la Promoción (opcional):</label>
                           <input 
                             type="text" 
                             placeholder={
