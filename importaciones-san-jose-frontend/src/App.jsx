@@ -37,8 +37,8 @@ import { promotionsService } from './services/promotions';
 
 const CATEGORIAS = [
   { id: 'all', nombre: 'Todos los Productos', icon: Sparkles },
-  { id: 'mas-vendidos', nombre: '🔥 Más Vendidos', icon: Flame },
-  { id: 'ofertas', nombre: '🏷️ Ofertas Especiales', icon: Tag },
+  { id: 'mas-vendidos', nombre: 'Más Vendidos', icon: Flame },
+  { id: 'ofertas', nombre: 'Ofertas Especiales', icon: Tag },
   { id: 'Hogar y Cocina', nombre: 'Hogar y Cocina', icon: Home },
   { id: 'Juguetería y Niños', nombre: 'Juguetería y Niños', icon: Baby },
   { id: 'Útiles y Papelería', nombre: 'Útiles y Papelería', icon: BookOpen },
@@ -210,7 +210,7 @@ export default function App() {
                     }}
                   >
                     <Flame size={16} />
-                    <span>🔥 Más Vendidos</span>
+                    <span>Más Vendidos</span>
                   </button>
                   <button 
                     className="hero-secondary-btn btn-ofertas-hero"
@@ -221,7 +221,7 @@ export default function App() {
                     }}
                   >
                     <Tag size={16} />
-                    <span>🏷️ Ofertas Especiales</span>
+                    <span>Ofertas Especiales</span>
                   </button>
                 </div>
               </div>

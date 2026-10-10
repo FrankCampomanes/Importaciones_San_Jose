@@ -1123,9 +1123,9 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                               color: order.estado === 'Entregado' ? '#03543F' : order.estado === 'En Camino' ? '#1E40AF' : '#92400E'
                             }}
                           >
-                            <option value="Preparando">📦 Preparando Pedido</option>
-                            <option value="En Camino">🚚 En Camino</option>
-                            <option value="Entregado">✅ Entregado</option>
+                            <option value="Preparando">Preparando Pedido</option>
+                            <option value="En Camino">En Camino</option>
+                            <option value="Entregado">Entregado</option>
                           </select>
                         </td>
                       </tr>
@@ -1250,7 +1250,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                       <div className="promo-box-title">
                         <Tag size={18} className="promo-icon" />
                         <div>
-                          <strong>🏷️ Oferta y Promoción Comercial</strong>
+                          <strong>Oferta y Promoción Comercial</strong>
                           <p className="promo-subtext">Configura ofertas directas, por volumen mayorista o bonificación con unidades de regalo</p>
                         </div>
                       </div>

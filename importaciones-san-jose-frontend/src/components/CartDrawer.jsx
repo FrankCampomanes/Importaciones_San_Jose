@@ -840,7 +840,7 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
                   gap: '6px'
                 }}
               >
-                📦 Ver Mis Compras en Mi Perfil
+                Ver Mis Compras en Mi Perfil
               </button>
 
               <button

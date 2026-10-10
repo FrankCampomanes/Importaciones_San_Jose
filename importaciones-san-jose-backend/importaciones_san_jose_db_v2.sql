@@ -143,7 +143,7 @@ CREATE TABLE Ventas (
   Numero_Comprobante VARCHAR(30) NOT NULL UNIQUE,
   Num_Documento_Cliente VARCHAR(20) NOT NULL,
   Razon_Social_Cliente VARCHAR(150),
-  Estado ENUM('Completada','Cancelada') NOT NULL DEFAULT 'Completada',
+  Estado VARCHAR(40) NOT NULL DEFAULT 'Preparando',
   CONSTRAINT fk_ventas_usuario FOREIGN KEY (ID_Usuario) REFERENCES Usuarios(ID_Usuario) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT fk_ventas_sede FOREIGN KEY (ID_Sede) REFERENCES Sedes(ID_Sede) ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT fk_ventas_metodo FOREIGN KEY (ID_Metodo) REFERENCES Metodos_Pago(ID_Metodo) ON UPDATE CASCADE ON DELETE RESTRICT,
