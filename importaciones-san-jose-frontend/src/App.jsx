@@ -57,6 +57,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [sedeInventory, setSedeInventory] = useState({});
   
   // Vistas: 'home', 'catalog', 'admin'
   const [currentView, setCurrentView] = useState('home');
@@ -81,6 +82,25 @@ export default function App() {
     window.addEventListener('promotions-updated', handlePromosUpdated);
     return () => window.removeEventListener('promotions-updated', handlePromosUpdated);
   }, []);
+
+  // Cargar inventario de la sede seleccionada para disponibilidad instantánea y filtrado
+  useEffect(() => {
+    if (selectedSede?.id) {
+      api.getInventoryBySede(selectedSede.id)
+        .then(list => {
+          if (Array.isArray(list)) {
+            const map = {};
+            list.forEach(inv => {
+              map[inv.productoId] = inv.stockActual ?? 0;
+            });
+            setSedeInventory(map);
+          }
+        })
+        .catch(() => setSedeInventory({}));
+    } else {
+      setSedeInventory({});
+    }
+  }, [selectedSede]);
 
   // Redirección de seguridad: Si el usuario no es Admin y está en la vista admin, volver a home
   useEffect(() => {
@@ -148,6 +168,10 @@ export default function App() {
   // Filtrado de productos mediante el buscador ultra-potente y categoría
   const searchedProducts = searchProducts(products, searchTerm);
   const filteredProducts = searchedProducts.filter(p => {
+    // Si hay una sede seleccionada, no mostrar productos con stock agotado (0) en esa sede
+    if (selectedSede && typeof sedeInventory[p.id] === 'number' && sedeInventory[p.id] <= 0) {
+      return false;
+    }
     if (selectedCategory === 'all') return true;
     if (selectedCategory === 'mas-vendidos') {
       return topVendidosIds.includes(p.id);
@@ -315,7 +339,7 @@ export default function App() {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                 >
-                  <span>Ver Catálogo</span>
+                  <span>Ver Catálogo Completo</span>
                   <ArrowRight size={16} />
                 </button>
               </div>
@@ -326,10 +350,12 @@ export default function App() {
                 </div>
               ) : (
                 <div className="products-grid-layout">
-                  {filteredProducts.map((p) => (
+                  {filteredProducts.slice(0, 12).map((p) => (
                     <ProductCard
                       key={p.id}
                       product={p}
+                      selectedSede={selectedSede}
+                      stockInSede={selectedSede ? (sedeInventory[p.id] ?? 0) : undefined}
                       onSelect={(prod) => setSelectedProduct(prod)}
                     />
                   ))}
@@ -346,7 +372,7 @@ export default function App() {
                   }}
                 >
                   <BookOpen size={18} />
-                  <span>Ver Catálogo</span>
+                  <span>Ver Catálogo Completo</span>
                 </button>
               </div>
             </div>
@@ -445,6 +471,8 @@ export default function App() {
                     <ProductCard
                       key={p.id}
                       product={p}
+                      selectedSede={selectedSede}
+                      stockInSede={selectedSede ? (sedeInventory[p.id] ?? 0) : undefined}
                       onSelect={(prod) => setSelectedProduct(prod)}
                     />
                   ))}
@@ -488,6 +516,8 @@ export default function App() {
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         selectedSede={selectedSede}
+        sedes={sedes}
+        onSelectSede={(s) => setSelectedSede(s)}
       />
 
       <AuthModal

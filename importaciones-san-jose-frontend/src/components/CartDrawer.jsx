@@ -92,6 +92,9 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
     setNumDocumento(tipoComprobante === 'Factura' ? '20607725731' : '72849102');
     if (user?.nombreCompleto) setCardHolder(user.nombreCompleto.toUpperCase());
     if (user?.telefono) setYapePhone(user.telefono);
+    if (items.length > 0 && items[0].sedeId) {
+      setRecojoSedeId(items[0].sedeId);
+    }
     setStep('checkout');
   };
 
@@ -106,8 +109,10 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
 
     setLoading(true);
 
+    const activeItemSedeId = items.length > 0 && items[0].sedeId ? items[0].sedeId : (selectedSede?.id || 1);
+
     const payload = {
-      sedeId: metodoEntrega === 'Recojo en Tienda' ? parseInt(recojoSedeId) : (selectedSede?.id || 1),
+      sedeId: metodoEntrega === 'Recojo en Tienda' ? parseInt(recojoSedeId) : activeItemSedeId,
       metodoPagoId: metodoPago === 'Yape' ? 2 : 1,
       metodoEntrega,
       comprobante: tipoComprobante,
@@ -251,6 +256,12 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
 
                       <div className="cart-item-info">
                         <h4 className="cart-item-name">{item.nombre}</h4>
+                        {(item.sedeNombre || selectedSede?.nombreSede) && (
+                          <div className="cart-item-sede-tag">
+                            <Building2 size={11} />
+                            <span>Sede: {item.sedeNombre || selectedSede?.nombreSede}</span>
+                          </div>
+                        )}
                         {(() => {
                           const pricing = getItemPricing ? getItemPricing(item) : { lineTotal: item.precio * item.cantidad, bonusUnits: 0, promoDescription: null };
                           return (

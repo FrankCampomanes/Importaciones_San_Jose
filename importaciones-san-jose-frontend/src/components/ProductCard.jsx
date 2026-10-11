@@ -3,7 +3,7 @@ import { ShoppingCart, Eye, QrCode, Tag, Gift, Percent } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { promotionsService } from '../services/promotions';
 
-export default function ProductCard({ product, onSelect }) {
+export default function ProductCard({ product, onSelect, selectedSede, stockInSede }) {
   const { addToCart } = useCart();
   const [imgError, setImgError] = useState(false);
   const [, setTick] = useState(0);
@@ -23,9 +23,26 @@ export default function ProductCard({ product, onSelect }) {
 
   return (
     <div className={`product-card ${promo ? 'has-promotion' : ''}`}>
-      {/* Badges de Categoría y Oferta */}
+      {/* Badges de Categoría, Stock y Oferta */}
       <div className="card-top-badges">
         <span className="category-pill" title={product.categoria}>{product.categoria}</span>
+
+        {/* Distintivo sutil de stock cuando hay una sede seleccionada */}
+        {selectedSede && typeof stockInSede === 'number' && (
+          stockInSede > 5 ? (
+            <span className="stock-pill in-stock" title={`Disponibles en tienda: ${stockInSede} unidades`}>
+              {stockInSede} u. disponibles
+            </span>
+          ) : stockInSede > 0 ? (
+            <span className="stock-pill low-stock" title={`¡Apurarse! Solo quedan ${stockInSede} unidades`}>
+              ¡Últimas {stockInSede} u. disponibles!
+            </span>
+          ) : (
+            <span className="stock-pill out-of-stock" title="No disponible temporalmente en esta sede">
+              Agotado en esta sede
+            </span>
+          )
+        )}
 
         {/* Badge de Promoción si aplica */}
         {promo && promo.tipo === 'descuento_directo' && (
@@ -114,11 +131,25 @@ export default function ProductCard({ product, onSelect }) {
 
           <button 
             className="add-to-cart-btn"
-            onClick={() => addToCart(product)}
-            title="Agregar al carrito"
+            disabled={selectedSede && stockInSede === 0}
+            onClick={() => {
+              if (selectedSede) {
+                if (typeof stockInSede === 'number' && stockInSede > 0) {
+                  addToCart(product, 1, selectedSede, stockInSede);
+                } else if (stockInSede === 0) {
+                  onSelect(product);
+                } else {
+                  addToCart(product, 1, selectedSede);
+                }
+              } else {
+                // Si no hay sede filtrada, abre el modal para que elija su tienda física
+                onSelect(product);
+              }
+            }}
+            title={selectedSede && stockInSede === 0 ? "Agotado en esta sede" : "Agregar al carrito"}
           >
             <ShoppingCart size={16} />
-            <span>Agregar</span>
+            <span>{selectedSede && stockInSede === 0 ? 'Agotado' : 'Agregar'}</span>
           </button>
         </div>
       </div>

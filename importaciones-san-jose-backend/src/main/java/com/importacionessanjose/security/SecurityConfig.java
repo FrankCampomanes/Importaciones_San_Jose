@@ -57,10 +57,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
 
-                        // Catálogo: lectura pública
+                        // Catálogo e inventario: lectura pública
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/sedes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/promotions/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/inventory/**").permitAll()
 
                         // Promociones: administración
                         .requestMatchers(HttpMethod.POST, "/api/promotions/**").hasRole("Admin")
@@ -79,8 +80,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/sedes/**").hasRole("Admin")
                         .requestMatchers(HttpMethod.PUT, "/api/sedes/**").hasRole("Admin")
 
-                        // Inventario: lectura autenticada, escritura solo Admin
-                        .requestMatchers(HttpMethod.GET, "/api/inventory/**").authenticated()
+                        // Inventario: escritura solo Admin
                         .requestMatchers(HttpMethod.POST, "/api/inventory/**").hasRole("Admin")
                         .requestMatchers(HttpMethod.PUT, "/api/inventory/**").hasRole("Admin")
 

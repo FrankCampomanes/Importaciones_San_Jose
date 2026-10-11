@@ -1,16 +1,45 @@
-import React, { useState } from 'react';
-import { X, ShoppingCart, QrCode, MapPin, Truck, Tag, Gift, Percent, Share2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ShoppingCart, QrCode, MapPin, Truck, Tag, Gift, Percent, Share2, Check, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { promotionsService } from '../services/promotions';
+import { api } from '../services/api';
 
-export default function ProductModal({ product, onClose, selectedSede }) {
+export default function ProductModal({ product, onClose, selectedSede, sedes = [], onSelectSede }) {
   const { addToCart, getItemPricing } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [imgError, setImgError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [inventoryList, setInventoryList] = useState([]);
+  const [loadingInv, setLoadingInv] = useState(true);
+  const [activeSede, setActiveSede] = useState(selectedSede || null);
+  const [sedeErrorPrompt, setSedeErrorPrompt] = useState(false);
+
+  useEffect(() => {
+    setActiveSede(selectedSede || null);
+    setQuantity(1);
+    setSedeErrorPrompt(false);
+    if (product?.id) {
+      setLoadingInv(true);
+      api.getInventoryByProduct(product.id)
+        .then(data => {
+          setInventoryList(Array.isArray(data) ? data : []);
+        })
+        .catch(err => {
+          console.warn('Error cargando inventario por sedes:', err);
+          setInventoryList([]);
+        })
+        .finally(() => setLoadingInv(false));
+    }
+  }, [product, selectedSede]);
 
   if (!product) return null;
+
+  // Stock en la sede activa
+  const activeSedeInv = activeSede ? inventoryList.find(i => i.sedeId === activeSede.id) : null;
+  const currentStock = activeSedeInv ? (activeSedeInv.stockActual ?? 0) : 0;
+  const isOutOfStock = Boolean(activeSede && currentStock === 0);
+  const isLimitReached = Boolean(activeSede && quantity >= currentStock && currentStock > 0);
 
   const handleShare = async () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://importaciones-san-jose.vercel.app';
@@ -32,8 +61,34 @@ export default function ProductModal({ product, onClose, selectedSede }) {
     }
   };
 
+  const handleChooseSede = (invItem, stock) => {
+    if (stock <= 0) return;
+    const found = (sedes && sedes.find(s => s.id === invItem.sedeId)) || {
+      id: invItem.sedeId,
+      nombreSede: invItem.sedeNombre || `Sede ${invItem.sedeId}`
+    };
+    setActiveSede(found);
+    setSedeErrorPrompt(false);
+    setQuantity(1);
+  };
+
+  const handleAdd = () => {
+    if (!activeSede) {
+      setSedeErrorPrompt(true);
+      return;
+    }
+    if (isOutOfStock) return;
+    addToCart(product, quantity, activeSede, currentStock);
+    if (onSelectSede && !selectedSede) {
+      onSelectSede(activeSede);
+    }
+    onClose();
+  };
+
   const hasLocalImage = product.imagenUrl && product.imagenUrl.startsWith('/images/products/') && !imgError;
-  const pricing = getItemPricing ? getItemPricing({ ...product, cantidad: quantity }) : { lineTotal: product.precio * quantity, promoDescription: null };
+  const pricing = getItemPricing 
+    ? getItemPricing({ ...product, cantidad: quantity }) 
+    : { lineTotal: product.precio * quantity, promoDescription: null };
 
   // Consulta de promoción oficial en base de datos
   const promo = promotionsService.getForProduct(product.id);
@@ -47,11 +102,6 @@ export default function ProductModal({ product, onClose, selectedSede }) {
       promoDesc = `Promoción por volumen: ${promo.porcentajeDescuento}% de descuento desde ${promo.cantidadMinima} unidades`;
     }
   }
-
-  const handleAdd = () => {
-    addToCart(product, quantity);
-    onClose();
-  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -155,9 +205,19 @@ export default function ProductModal({ product, onClose, selectedSede }) {
           <div className="product-modal-details-col">
             <div className="modal-badge-row">
               <span className="category-pill">{product.categoria}</span>
-              <span className="stock-status-pill in-stock">
-                Disponible en {selectedSede?.nombreSede || 'Tienda'}
-              </span>
+              {activeSede ? (
+                <span className={`stock-status-pill ${currentStock > 5 ? 'in-stock' : currentStock > 0 ? 'low-stock' : 'out-of-stock'}`}>
+                  {currentStock > 5 
+                    ? `Disponibles en esta sede: ${currentStock} u.`
+                    : currentStock > 0 
+                      ? `¡Últimas ${currentStock} unidades disponibles!`
+                      : 'Agotado en esta sede.'}
+                </span>
+              ) : (
+                <span className="stock-status-pill choose-sede">
+                  Selecciona una tienda física
+                </span>
+              )}
             </div>
 
             <h2 className="modal-product-title">{product.nombre}</h2>
@@ -183,6 +243,60 @@ export default function ProductModal({ product, onClose, selectedSede }) {
               {product.descripcion || 'Producto garantizado de primera calidad en Grupo Importaciones San José S.R.L.'}
             </p>
 
+            {/* Si ya hay sede filtrada desde el encabezado */}
+            {selectedSede && activeSede && (
+              <div className="modal-active-sede-banner">
+                <MapPin size={16} className="brand-red" />
+                <span>Disponible para entrega/recojo en <strong>{activeSede.nombreSede}</strong></span>
+              </div>
+            )}
+
+            {/* Si está en 'Todas las Sedes': Selector interactivo con chips de disponibilidad */}
+            {!selectedSede && (
+              <div className="modal-branch-selector-card">
+                <div className="modal-branch-header">
+                  <MapPin size={15} />
+                  <span>📍 Disponibilidad en nuestras tiendas:</span>
+                </div>
+                <div className="modal-branch-chips-grid">
+                  {loadingInv ? (
+                    <div style={{ fontSize: '12px', color: '#64748B', padding: '6px 0' }}>Consultando stock en tiendas...</div>
+                  ) : inventoryList.length > 0 ? (
+                    inventoryList.map(inv => {
+                      const isSelected = activeSede?.id === inv.sedeId;
+                      const stockVal = inv.stockActual ?? 0;
+                      const hasStock = stockVal > 0;
+                      const shortName = inv.sedeNombre ? inv.sedeNombre.replace(/^Sede\s+/i, '') : `Tienda ${inv.sedeId}`;
+                      return (
+                        <button
+                          key={inv.sedeId}
+                          type="button"
+                          disabled={!hasStock}
+                          onClick={() => handleChooseSede(inv, stockVal)}
+                          className={`modal-branch-chip ${isSelected ? 'selected' : ''} ${!hasStock ? 'disabled' : ''}`}
+                          title={hasStock ? `Seleccionar ${inv.sedeNombre} (${stockVal} u.)` : `Agotado en ${inv.sedeNombre}`}
+                        >
+                          <span className="chip-name">{shortName}:</span>
+                          <span className={`chip-stock ${hasStock ? (stockVal > 5 ? 'good' : 'low') : 'none'}`}>
+                            {hasStock ? `${stockVal} u.` : 'Agotado'}
+                          </span>
+                          {isSelected && <Check size={13} className="chip-check" />}
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div style={{ fontSize: '12px', color: '#64748B' }}>5 tiendas disponibles en Lima & Callao</div>
+                  )}
+                </div>
+                {sedeErrorPrompt && !activeSede && (
+                  <div className="branch-error-alert">
+                    <AlertCircle size={14} />
+                    <span>Por favor, elija la sede donde desea comprar para verificar disponibilidad.</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Cuadro de Beneficios y Promociones Oficiales */}
             <div className="store-benefits-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div className="benefit-item">
@@ -206,16 +320,48 @@ export default function ProductModal({ product, onClose, selectedSede }) {
               )}
             </div>
 
+            {/* Acciones de compra con contador y límite estricto */}
             <div className="modal-purchase-actions">
-              <div className="quantity-counter">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
-                <span>{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)}>+</button>
+              <div className="quantity-counter-wrapper">
+                <div className="quantity-counter">
+                  <button 
+                    type="button"
+                    disabled={!activeSede || isOutOfStock || quantity <= 1} 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >-</button>
+                  <span>{activeSede && !isOutOfStock ? quantity : 0}</span>
+                  <button 
+                    type="button"
+                    disabled={!activeSede || isOutOfStock || quantity >= currentStock} 
+                    onClick={() => {
+                      if (quantity < currentStock) {
+                        setQuantity(quantity + 1);
+                      }
+                    }}
+                  >+</button>
+                </div>
+
+                {isLimitReached && (
+                  <span className="stock-limit-note">Límite disponible alcanzado.</span>
+                )}
+                {activeSede && currentStock > 0 && !isLimitReached && (
+                  <span className="stock-remaining-note">Quedan {currentStock - quantity} u. en esta sede</span>
+                )}
               </div>
 
-              <button className="primary-action-btn flex-1" onClick={handleAdd}>
+              <button 
+                type="button"
+                className={`primary-action-btn flex-1 ${(!activeSede || isOutOfStock) ? 'btn-disabled-friendly' : ''}`}
+                onClick={handleAdd}
+              >
                 <ShoppingCart size={18} />
-                <span>Agregar S/ {(pricing.lineTotal || product.precio * quantity).toFixed(2)} al Carrito</span>
+                <span>
+                  {!activeSede 
+                    ? 'Por favor elija una sede' 
+                    : isOutOfStock 
+                      ? 'Agotado en esta sede' 
+                      : `Agregar S/ ${(pricing.lineTotal || product.precio * quantity).toFixed(2)} al Carrito`}
+                </span>
               </button>
             </div>
           </div>

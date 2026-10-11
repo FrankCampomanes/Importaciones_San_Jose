@@ -14,15 +14,30 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem('sj_cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product, quantity = 1) => {
+  const addToCart = (product, quantity = 1, sede = null, maxStock = null) => {
     setItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.id === product.id ? { ...item, cantidad: item.cantidad + quantity } : item
-        );
+      const existingIndex = prev.findIndex(item => item.id === product.id);
+      if (existingIndex >= 0) {
+        const existing = prev[existingIndex];
+        const allowedMax = maxStock || existing.maxStock || 999;
+        const newQty = Math.min(existing.cantidad + quantity, allowedMax);
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...existing,
+          cantidad: newQty,
+          maxStock: allowedMax,
+          sedeId: sede?.id || existing.sedeId,
+          sedeNombre: sede?.nombreSede || existing.sedeNombre
+        };
+        return updated;
       }
-      return [...prev, { ...product, cantidad: quantity }];
+      return [...prev, {
+        ...product,
+        cantidad: quantity,
+        maxStock: maxStock || null,
+        sedeId: sede?.id || null,
+        sedeNombre: sede?.nombreSede || null
+      }];
     });
     setIsCartOpen(true);
   };
@@ -37,12 +52,16 @@ export const CartProvider = ({ children }) => {
         .map(item => {
           if (item.id === id) {
             const newQty = item.cantidad + delta;
-            return newQty > 0 ? { ...item, cantidad: newQty } : null;
+            if (newQty <= 0) return null;
+            if (item.maxStock && newQty > item.maxStock) {
+              return { ...item, cantidad: item.maxStock };
+            }
+            return { ...item, cantidad: newQty };
           }
           return item;
         })
         .filter(Boolean)
-      );
+    );
   };
 
   const clearCart = () => setItems([]);
