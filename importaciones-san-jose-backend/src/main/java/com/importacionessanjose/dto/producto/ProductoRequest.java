@@ -19,9 +19,9 @@ public record ProductoRequest(
 
         @NotBlank(message = "La categoría es obligatoria") @Size(max = 80, message = "La categoría no puede exceder 80 caracteres") String categoria,
 
-        @Size(max = 500, message = "La URL de imagen no puede exceder 500 caracteres") String imagenUrl,
+        @Size(max = 5000000, message = "La imagen no puede exceder 5MB") String imagenUrl,
 
-        @NotBlank(message = "El código QR es obligatorio") @Size(max = 100, message = "El código QR no puede exceder 100 caracteres") String codigoQr,
+        @Size(max = 100, message = "El código QR no puede exceder 100 caracteres") String codigoQr,
 
         Boolean activo) {
 }

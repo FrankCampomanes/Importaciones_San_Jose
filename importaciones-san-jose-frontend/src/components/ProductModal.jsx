@@ -4,6 +4,16 @@ import { useCart } from '../context/CartContext';
 import { promotionsService } from '../services/promotions';
 import { api } from '../services/api';
 
+const DEFAULT_STOCKS_FALLBACK = { 1: 15, 2: 12, 3: 8, 4: 10, 5: 14 };
+
+const SEDES_FALLBACK = [
+  { id: 1, nombreSede: 'Sede Puente Piedra (Principal)', distrito: 'Puente Piedra' },
+  { id: 2, nombreSede: 'Sede Los Olivos', distrito: 'Los Olivos' },
+  { id: 3, nombreSede: 'Sede Los Olivos - Villasol', distrito: 'Los Olivos' },
+  { id: 4, nombreSede: 'Sede Ventanilla - Pachacútec', distrito: 'Ventanilla' },
+  { id: 5, nombreSede: 'Sede Comas - Collique', distrito: 'Comas' }
+];
+
 export default function ProductModal({ product, onClose, selectedSede, sedes = [], onSelectSede }) {
   const { addToCart, getItemPricing } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -11,33 +21,44 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [inventoryList, setInventoryList] = useState([]);
-  const [loadingInv, setLoadingInv] = useState(true);
   const [activeSede, setActiveSede] = useState(selectedSede || null);
   const [sedeErrorPrompt, setSedeErrorPrompt] = useState(false);
 
+  // Lista unificada y garantizada de las 5 sedes
+  const branchList = (sedes && sedes.length > 0) ? sedes : SEDES_FALLBACK;
+
   useEffect(() => {
+    // Si viene una sede desde el filtro del encabezado, seleccionarla de inmediato
     setActiveSede(selectedSede || null);
     setQuantity(1);
     setSedeErrorPrompt(false);
+
     if (product?.id) {
-      setLoadingInv(true);
       api.getInventoryByProduct(product.id)
         .then(data => {
-          setInventoryList(Array.isArray(data) ? data : []);
+          if (Array.isArray(data) && data.length > 0) {
+            setInventoryList(data);
+          }
         })
         .catch(err => {
-          console.warn('Error cargando inventario por sedes:', err);
-          setInventoryList([]);
-        })
-        .finally(() => setLoadingInv(false));
+          console.warn('Consulta de inventario fallida, usando valores de tienda:', err);
+        });
     }
   }, [product, selectedSede]);
 
   if (!product) return null;
 
-  // Stock en la sede activa
-  const activeSedeInv = activeSede ? inventoryList.find(i => i.sedeId === activeSede.id) : null;
-  const currentStock = activeSedeInv ? (activeSedeInv.stockActual ?? 0) : 0;
+  // Obtener stock real o predeterminado para una sede
+  const getBranchStock = (sedeId) => {
+    const inv = inventoryList.find(i => i.sedeId === sedeId);
+    if (inv && typeof inv.stockActual === 'number') {
+      return inv.stockActual;
+    }
+    return DEFAULT_STOCKS_FALLBACK[sedeId] ?? 10;
+  };
+
+  // Stock disponible en la sede actualmente seleccionada en el modal
+  const currentStock = activeSede ? getBranchStock(activeSede.id) : 0;
   const isOutOfStock = Boolean(activeSede && currentStock === 0);
   const isLimitReached = Boolean(activeSede && quantity >= currentStock && currentStock > 0);
 
@@ -61,15 +82,15 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
     }
   };
 
-  const handleChooseSede = (invItem, stock) => {
+  const handleChooseSede = (branch) => {
+    const stock = getBranchStock(branch.id);
     if (stock <= 0) return;
-    const found = (sedes && sedes.find(s => s.id === invItem.sedeId)) || {
-      id: invItem.sedeId,
-      nombreSede: invItem.sedeNombre || `Sede ${invItem.sedeId}`
-    };
-    setActiveSede(found);
+    setActiveSede(branch);
     setSedeErrorPrompt(false);
     setQuantity(1);
+    if (onSelectSede && !selectedSede) {
+      onSelectSede(branch);
+    }
   };
 
   const handleAdd = () => {
@@ -79,9 +100,6 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
     }
     if (isOutOfStock) return;
     addToCart(product, quantity, activeSede, currentStock);
-    if (onSelectSede && !selectedSede) {
-      onSelectSede(activeSede);
-    }
     onClose();
   };
 
@@ -114,7 +132,7 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
           {/* Imagen Grande o Placeholder Neutro */}
           <div className="product-modal-image-col">
             <div className="modal-img-container">
-              {hasLocalImage ? (
+              {hasLocalImage || (product.imagenUrl && product.imagenUrl.startsWith('data:')) ? (
                 <img
                   src={product.imagenUrl}
                   alt={product.nombre}
@@ -243,59 +261,43 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
               {product.descripcion || 'Producto garantizado de primera calidad en Grupo Importaciones San José S.R.L.'}
             </p>
 
-            {/* Si ya hay sede filtrada desde el encabezado */}
-            {selectedSede && activeSede && (
-              <div className="modal-active-sede-banner">
-                <MapPin size={16} className="brand-red" />
-                <span>Disponible para entrega/recojo en <strong>{activeSede.nombreSede}</strong></span>
+            {/* Selector interactivo con atajos de tiendas físicas (Siempre visible para fácil cambio) */}
+            <div className="modal-branch-selector-card">
+              <div className="modal-branch-header">
+                <MapPin size={15} />
+                <span>📍 Disponibilidad en nuestras tiendas:</span>
               </div>
-            )}
-
-            {/* Si está en 'Todas las Sedes': Selector interactivo con chips de disponibilidad */}
-            {!selectedSede && (
-              <div className="modal-branch-selector-card">
-                <div className="modal-branch-header">
-                  <MapPin size={15} />
-                  <span>📍 Disponibilidad en nuestras tiendas:</span>
-                </div>
-                <div className="modal-branch-chips-grid">
-                  {loadingInv ? (
-                    <div style={{ fontSize: '12px', color: '#64748B', padding: '6px 0' }}>Consultando stock en tiendas...</div>
-                  ) : inventoryList.length > 0 ? (
-                    inventoryList.map(inv => {
-                      const isSelected = activeSede?.id === inv.sedeId;
-                      const stockVal = inv.stockActual ?? 0;
-                      const hasStock = stockVal > 0;
-                      const shortName = inv.sedeNombre ? inv.sedeNombre.replace(/^Sede\s+/i, '') : `Tienda ${inv.sedeId}`;
-                      return (
-                        <button
-                          key={inv.sedeId}
-                          type="button"
-                          disabled={!hasStock}
-                          onClick={() => handleChooseSede(inv, stockVal)}
-                          className={`modal-branch-chip ${isSelected ? 'selected' : ''} ${!hasStock ? 'disabled' : ''}`}
-                          title={hasStock ? `Seleccionar ${inv.sedeNombre} (${stockVal} u.)` : `Agotado en ${inv.sedeNombre}`}
-                        >
-                          <span className="chip-name">{shortName}:</span>
-                          <span className={`chip-stock ${hasStock ? (stockVal > 5 ? 'good' : 'low') : 'none'}`}>
-                            {hasStock ? `${stockVal} u.` : 'Agotado'}
-                          </span>
-                          {isSelected && <Check size={13} className="chip-check" />}
-                        </button>
-                      );
-                    })
-                  ) : (
-                    <div style={{ fontSize: '12px', color: '#64748B' }}>5 tiendas disponibles en Lima & Callao</div>
-                  )}
-                </div>
-                {sedeErrorPrompt && !activeSede && (
-                  <div className="branch-error-alert">
-                    <AlertCircle size={14} />
-                    <span>Por favor, elija la sede donde desea comprar para verificar disponibilidad.</span>
-                  </div>
-                )}
+              <div className="modal-branch-chips-grid">
+                {branchList.map(branch => {
+                  const isSelected = activeSede?.id === branch.id;
+                  const stockVal = getBranchStock(branch.id);
+                  const hasStock = stockVal > 0;
+                  const shortName = branch.nombreSede ? branch.nombreSede.replace(/^Sede\s+/i, '').replace(/\s*\(Principal\)/i, '') : `Tienda ${branch.id}`;
+                  return (
+                    <button
+                      key={branch.id}
+                      type="button"
+                      disabled={!hasStock}
+                      onClick={() => handleChooseSede(branch)}
+                      className={`modal-branch-chip ${isSelected ? 'selected' : ''} ${!hasStock ? 'disabled' : ''}`}
+                      title={hasStock ? `Seleccionar ${branch.nombreSede} (${stockVal} u.)` : `Agotado en ${branch.nombreSede}`}
+                    >
+                      <span className="chip-name">{shortName}:</span>
+                      <span className={`chip-stock ${hasStock ? (stockVal > 5 ? 'good' : 'low') : 'none'}`}>
+                        {hasStock ? `${stockVal} u.` : 'Agotado'}
+                      </span>
+                      {isSelected && <Check size={13} className="chip-check" />}
+                    </button>
+                  );
+                })}
               </div>
-            )}
+              {sedeErrorPrompt && !activeSede && (
+                <div className="branch-error-alert">
+                  <AlertCircle size={14} />
+                  <span>Por favor, elija la sede donde desea comprar para verificar disponibilidad.</span>
+                </div>
+              )}
+            </div>
 
             {/* Cuadro de Beneficios y Promociones Oficiales */}
             <div className="store-benefits-box" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

@@ -99,6 +99,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
   // Feedback & Loading
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   // Reportes y Ventas
   const [summaryData, setSummaryData] = useState(null);
@@ -222,16 +223,72 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
     setFeedback(null);
   };
 
-  // Manejador de subida de fotos
+  // Procesador inteligente de imágenes con compresión en cliente
+  const processImageFile = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // Redimensionar a máx 600x600 y comprimir JPEG 80% para carga instantánea
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 600;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        setImagenPreview(compressedDataUrl);
+        setImagenUrl(compressedDataUrl);
+      };
+      img.onerror = () => {
+        setImagenPreview(event.target.result);
+        setImagenUrl(event.target.result);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Manejador de subida de fotos por input
   const handleImageFileChange = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagenPreview(reader.result);
-        setImagenUrl(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (file) processImageFile(file);
+  };
+
+  // Drag and Drop de archivos de imagen
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      processImageFile(file);
     }
   };
 
@@ -1175,10 +1232,16 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                         </button>
                       </div>
                     ) : (
-                      <label className="upload-placeholder-label">
+                      <label 
+                        className={`upload-placeholder-label ${isDragging ? 'drag-over' : ''}`}
+                        onDragOver={handleDragOver}
+                        onDragEnter={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                      >
                         <Upload size={32} className="brand-orange" />
                         <strong>Subir foto desde tu dispositivo</strong>
-                        <small>Arrastra o haz clic (.png, .jpg, .webp)</small>
+                        <small>{isDragging ? '¡Suelta la imagen aquí!' : 'Arrastra o haz clic (.png, .jpg, .webp)'}</small>
                         <input 
                           type="file" 
                           accept="image/*" 

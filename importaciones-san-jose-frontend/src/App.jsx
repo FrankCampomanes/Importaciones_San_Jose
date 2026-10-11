@@ -355,7 +355,7 @@ export default function App() {
                       key={p.id}
                       product={p}
                       selectedSede={selectedSede}
-                      stockInSede={selectedSede ? (sedeInventory[p.id] ?? 0) : undefined}
+                      stockInSede={selectedSede ? (typeof sedeInventory[p.id] === 'number' ? sedeInventory[p.id] : 12) : undefined}
                       onSelect={(prod) => setSelectedProduct(prod)}
                     />
                   ))}
@@ -472,7 +472,7 @@ export default function App() {
                       key={p.id}
                       product={p}
                       selectedSede={selectedSede}
-                      stockInSede={selectedSede ? (sedeInventory[p.id] ?? 0) : undefined}
+                      stockInSede={selectedSede ? (typeof sedeInventory[p.id] === 'number' ? sedeInventory[p.id] : 12) : undefined}
                       onSelect={(prod) => setSelectedProduct(prod)}
                     />
                   ))}

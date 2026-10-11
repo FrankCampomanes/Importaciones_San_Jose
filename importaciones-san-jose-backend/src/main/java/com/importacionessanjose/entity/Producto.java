@@ -35,7 +35,7 @@ public class Producto {
     @Column(name = "Categoria", nullable = false, length = 80)
     private String categoria;
 
-    @Column(name = "Imagen_URL", length = 500)
+    @Column(name = "Imagen_URL", columnDefinition = "MEDIUMTEXT")
     private String imagenUrl;
 
     @Column(name = "Codigo_QR", nullable = false, unique = true, length = 100)

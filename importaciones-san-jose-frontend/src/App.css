@@ -1894,6 +1894,13 @@
   color: var(--color-primary-dark);
   font-size: 13.5px;
 }
+.upload-placeholder-label.drag-over {
+  border: 2px dashed #800020;
+  background: #FFF1F2;
+  border-radius: 12px;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
 
 .preview-container {
   width: 100%;

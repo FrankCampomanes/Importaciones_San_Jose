@@ -57,11 +57,16 @@ public class ProductoService {
 
     @Transactional
     public ProductoResponse crear(ProductoRequest request) {
-        if (productoRepository.findByCodigoQr(request.codigoQr()).isPresent()) {
-            throw new BusinessException("Ya existe un producto con el código QR: " + request.codigoQr());
+        String qr = (request.codigoQr() != null && !request.codigoQr().isBlank())
+                ? request.codigoQr().trim()
+                : "SJ-PROD-" + System.currentTimeMillis();
+
+        if (productoRepository.findByCodigoQr(qr).isPresent()) {
+            qr = qr + "-" + (int) (Math.random() * 1000);
         }
+
         Producto producto = new Producto();
-        aplicar(producto, request);
+        aplicar(producto, request, qr);
         producto.setFechaCreacion(java.time.LocalDateTime.now());
         Producto guardado = productoRepository.save(producto);
         return toResponse(guardado);
@@ -72,13 +77,17 @@ public class ProductoService {
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("Producto", id));
 
-        productoRepository.findByCodigoQr(request.codigoQr()).ifPresent(otro -> {
+        String qr = (request.codigoQr() != null && !request.codigoQr().isBlank())
+                ? request.codigoQr().trim()
+                : (producto.getCodigoQr() != null ? producto.getCodigoQr() : "SJ-PROD-" + id);
+
+        productoRepository.findByCodigoQr(qr).ifPresent(otro -> {
             if (!otro.getId().equals(id)) {
-                throw new BusinessException("Ya existe otro producto con el código QR: " + request.codigoQr());
+                throw new BusinessException("Ya existe otro producto con el código QR: " + qr);
             }
         });
 
-        aplicar(producto, request);
+        aplicar(producto, request, qr);
         Producto guardado = productoRepository.save(producto);
         return toResponse(guardado);
     }
@@ -92,14 +101,14 @@ public class ProductoService {
         productoRepository.save(producto);
     }
 
-    private void aplicar(Producto producto, ProductoRequest request) {
+    private void aplicar(Producto producto, ProductoRequest request, String qr) {
         producto.setNombre(request.nombre());
         producto.setDescripcion(request.descripcion());
         producto.setPrecio(request.precio());
         producto.setCostoAdquisicion(request.costoAdquisicion());
         producto.setCategoria(request.categoria());
         producto.setImagenUrl(request.imagenUrl());
-        producto.setCodigoQr(request.codigoQr());
+        producto.setCodigoQr(qr);
         producto.setActivo(request.activo() == null ? Boolean.TRUE : request.activo());
     }
 

@@ -30,7 +30,8 @@ export const api = {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || 'Error al registrar producto');
+      const detailsMsg = err.details ? ' -> ' + Object.entries(err.details).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
+      throw new Error((err.message || 'Error al registrar producto') + detailsMsg);
     }
     return await res.json();
   },
@@ -46,7 +47,8 @@ export const api = {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || 'Error al actualizar producto');
+      const detailsMsg = err.details ? ' -> ' + Object.entries(err.details).map(([k, v]) => `${k}: ${v}`).join('; ') : '';
+      throw new Error((err.message || 'Error al actualizar producto') + detailsMsg);
     }
     return await res.json();
   },
