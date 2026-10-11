@@ -307,7 +307,6 @@ export default function App() {
                 <div>
                   <span className="section-eyebrow-accent">Destacados de la Tienda</span>
                   <h2>Productos de Mayor Demanda</h2>
-                  <p>Catálogo verificado con fotografías reales y precios en Soles.</p>
                 </div>
                 <button 
                   className="view-all-link-btn"
