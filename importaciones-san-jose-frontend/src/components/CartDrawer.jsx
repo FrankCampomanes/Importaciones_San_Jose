@@ -40,13 +40,12 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
   const [tipoComprobante, setTipoComprobante] = useState('Boleta');
   const [numDocumento, setNumDocumento] = useState('');
   const [razonSocial, setRazonSocial] = useState('');
-  const [direccionEnvio, setDireccionEnvio] = useState('');
-  const [distritoEnvio, setDistritoEnvio] = useState('Puente Piedra');
+  const [direccionEnvio, setDireccionEnvio] = useState(user?.direccion || 'Av. Principal 123');
+  const [distritoEnvio, setDistritoEnvio] = useState(user?.distrito || 'Puente Piedra');
   const [loading, setLoading] = useState(false);
   const [orderResult, setOrderResult] = useState(null);
   const [validationMsg, setValidationMsg] = useState(null);
   const [metodoPago, setMetodoPago] = useState('Tarjeta'); // 'Tarjeta' o 'Yape'
-  const [codigoAprobacion, setCodigoAprobacion] = useState('');
 
   // Sede vinculada estrictamente al inventario y reserva del producto
   const activeItemSede = items.find(i => i.sedeId);
@@ -103,6 +102,8 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
     setNumDocumento(tipoComprobante === 'Factura' ? '20607725731' : '72849102');
     if (user?.nombreCompleto) setCardHolder(user.nombreCompleto.toUpperCase());
     if (user?.telefono) setYapePhone(user.telefono);
+    if (!direccionEnvio) setDireccionEnvio(user?.direccion || 'Av. Principal 123');
+    if (!distritoEnvio) setDistritoEnvio(resolvedSedeObj?.distrito || user?.distrito || 'Puente Piedra');
     setStep('checkout');
   };
 
@@ -714,7 +715,11 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
               <button type="button" className="btn-secondary-link" onClick={() => setStep('cart')}>
                 Volver al carrito
               </button>
-              <button type="submit" className="checkout-btn" disabled={loading || (metodoPago === 'Yape' && codigoAprobacion.length < 6)}>
+              <button
+                type="submit"
+                className="checkout-btn"
+                disabled={loading || (metodoPago === 'Yape' && (!yapeOtp || yapeOtp.trim().length < 6))}
+              >
                 {loading ? 'Procesando Transacción...' : (metodoPago === 'Yape' ? `Confirmar Pago Yape S/ ${total.toFixed(2)}` : `Pagar S/ ${total.toFixed(2)}`)}
               </button>
             </div>
