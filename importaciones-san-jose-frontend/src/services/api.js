@@ -104,14 +104,34 @@ export const api = {
 
   async updateInventoryStock(productId, sedeId, stock, token) {
     const numStock = parseInt(stock, 10) || 0;
-    const res = await fetch(`${API_BASE}/inventory/product/${productId}/sede/${sedeId}`, {
+    const activeToken = token || (typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null) || (await getCatalogAuthToken());
+    
+    // Primero intentar actualizar con PUT si el registro ya existe
+    let res = await fetch(`${API_BASE}/inventory/product/${productId}/sede/${sedeId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${activeToken}`
       },
       body: JSON.stringify({ stockActual: numStock, nuevoStock: numStock })
     });
+
+    // Si el registro de inventario para esta sede no existe todavía (404), crearlo mediante POST
+    if (res.status === 404) {
+      res = await fetch(`${API_BASE}/inventory`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${activeToken}`
+        },
+        body: JSON.stringify({
+          sedeId: parseInt(sedeId, 10),
+          productoId: parseInt(productId, 10),
+          stockActual: numStock
+        })
+      });
+    }
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'Error actualizando stock');

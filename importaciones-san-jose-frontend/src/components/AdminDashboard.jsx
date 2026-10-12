@@ -118,13 +118,22 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
   }, [token, sedes]);
 
   const loadFullInventory = async () => {
-    if (!token || !sedes || sedes.length === 0) return;
+    const activeToken = token || (typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null);
+    const targetSedes = (sedes && sedes.length > 0)
+      ? sedes
+      : [
+          { id: 1, nombreSede: 'Sede Puente Piedra (Principal)' },
+          { id: 2, nombreSede: 'Sede Los Olivos' },
+          { id: 3, nombreSede: 'Sede Los Olivos - Villasol' },
+          { id: 4, nombreSede: 'Sede Ventanilla - Pachacútec' },
+          { id: 5, nombreSede: 'Sede Comas - Collique' }
+        ];
     setInventoryLoading(true);
     try {
-      const results = await Promise.all(sedes.map(s => api.getInventoryBySede(s.id, token)));
+      const results = await Promise.all(targetSedes.map(s => api.getInventoryBySede(s.id, activeToken)));
       const map = {};
       results.forEach((sedeInventory, idx) => {
-        const sedeId = sedes[idx].id;
+        const sedeId = targetSedes[idx].id;
         if (Array.isArray(sedeInventory)) {
           sedeInventory.forEach(item => {
             if (!map[item.productoId]) map[item.productoId] = {};
@@ -342,12 +351,20 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
         const nuevo = await api.createProduct(productPayload, token);
         if (nuevo && nuevo.id) {
           savedProdId = nuevo.id;
-          for (const sede of sedes) {
-            const qty = stocksPorSede[sede.id] || 10;
-            await api.updateInventoryStock(nuevo.id, sede.id, qty, token).catch(() => {});
+          const targetSedes = (sedes && sedes.length > 0) 
+            ? sedes 
+            : [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }];
+          for (const sede of targetSedes) {
+            const rawQty = stocksPorSede[sede.id];
+            const qty = (typeof rawQty === 'number' && !isNaN(rawQty)) ? rawQty : (sede.id <= 2 ? 15 : 10);
+            try {
+              await api.updateInventoryStock(nuevo.id, sede.id, qty, token);
+            } catch (invErr) {
+              console.warn(`Error guardando stock sede ${sede.id} para producto ${nuevo.id}:`, invErr);
+            }
           }
         }
-        setFeedback({ type: 'success', text: `¡"${nombre}" registrado exitosamente en el catálogo!` });
+        setFeedback({ type: 'success', text: `¡"${nombre}" registrado exitosamente en el catálogo con su inventario multisede!` });
       }
 
       // Guardar o remover promoción asociada
@@ -413,14 +430,28 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
   // Abrir gestión de inventario por sede
   const openInventoryModal = async (prod) => {
     setSelectedProductInventory(prod);
+    const targetSedes = (sedes && sedes.length > 0)
+      ? sedes
+      : [
+          { id: 1, nombreSede: 'Sede Puente Piedra (Principal)' },
+          { id: 2, nombreSede: 'Sede Los Olivos' },
+          { id: 3, nombreSede: 'Sede Los Olivos - Villasol' },
+          { id: 4, nombreSede: 'Sede Ventanilla - Pachacútec' },
+          { id: 5, nombreSede: 'Sede Comas - Collique' }
+        ];
     const initial = {};
-    sedes.forEach(s => { initial[s.id] = 15; });
+    targetSedes.forEach(s => { initial[s.id] = s.id <= 2 ? 15 : 10; });
     
     try {
-      const invList = await api.getInventoryByProduct(prod.id, token);
-      if (Array.isArray(invList)) {
+      const activeToken = token || (typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null);
+      const invList = await api.getInventoryByProduct(prod.id, activeToken);
+      if (Array.isArray(invList) && invList.length > 0) {
         invList.forEach(item => {
-          if (item.sedeId) initial[item.sedeId] = item.stockActual || 0;
+          if (item.sedeId) initial[item.sedeId] = item.stockActual ?? 0;
+        });
+      } else if (fullInventoryMap[prod.id]) {
+        Object.entries(fullInventoryMap[prod.id]).forEach(([sid, qty]) => {
+          initial[sid] = qty ?? 0;
         });
       }
     } catch (e) {}
@@ -432,7 +463,16 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
     if (!selectedProductInventory) return;
     setLoading(true);
     try {
-      for (const sede of sedes) {
+      const targetSedes = (sedes && sedes.length > 0)
+        ? sedes
+        : [
+            { id: 1, nombreSede: 'Sede Puente Piedra (Principal)' },
+            { id: 2, nombreSede: 'Sede Los Olivos' },
+            { id: 3, nombreSede: 'Sede Los Olivos - Villasol' },
+            { id: 4, nombreSede: 'Sede Ventanilla - Pachacútec' },
+            { id: 5, nombreSede: 'Sede Comas - Collique' }
+          ];
+      for (const sede of targetSedes) {
         const raw = inventoryStocks[sede.id];
         const qty = raw === '' || raw === undefined ? 0 : parseInt(raw, 10) || 0;
         await api.updateInventoryStock(selectedProductInventory.id, sede.id, qty, token);

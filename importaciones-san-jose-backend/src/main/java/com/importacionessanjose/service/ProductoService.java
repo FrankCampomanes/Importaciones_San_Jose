@@ -2,10 +2,14 @@ package com.importacionessanjose.service;
 
 import com.importacionessanjose.dto.producto.ProductoRequest;
 import com.importacionessanjose.dto.producto.ProductoResponse;
+import com.importacionessanjose.entity.InventarioSede;
 import com.importacionessanjose.entity.Producto;
+import com.importacionessanjose.entity.Sede;
 import com.importacionessanjose.exception.BusinessException;
 import com.importacionessanjose.exception.ResourceNotFoundException;
+import com.importacionessanjose.repository.InventarioSedeRepository;
 import com.importacionessanjose.repository.ProductoRepository;
+import com.importacionessanjose.repository.SedeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +19,15 @@ import java.util.List;
 public class ProductoService {
 
     private final ProductoRepository productoRepository;
+    private final SedeRepository sedeRepository;
+    private final InventarioSedeRepository inventarioSedeRepository;
 
-    public ProductoService(ProductoRepository productoRepository) {
+    public ProductoService(ProductoRepository productoRepository,
+                           SedeRepository sedeRepository,
+                           InventarioSedeRepository inventarioSedeRepository) {
         this.productoRepository = productoRepository;
+        this.sedeRepository = sedeRepository;
+        this.inventarioSedeRepository = inventarioSedeRepository;
     }
 
     @Transactional(readOnly = true)
@@ -69,6 +79,17 @@ public class ProductoService {
         aplicar(producto, request, qr);
         producto.setFechaCreacion(java.time.LocalDateTime.now());
         Producto guardado = productoRepository.save(producto);
+
+        // Inicializar automáticamente el inventario para todas las sedes activas
+        List<Sede> sedes = sedeRepository.findByActivoTrue();
+        for (Sede s : sedes) {
+            InventarioSede inv = new InventarioSede();
+            inv.setSede(s);
+            inv.setProducto(guardado);
+            inv.setStockActual(s.getId() <= 2 ? 15 : 10);
+            inventarioSedeRepository.save(inv);
+        }
+
         return toResponse(guardado);
     }
 
