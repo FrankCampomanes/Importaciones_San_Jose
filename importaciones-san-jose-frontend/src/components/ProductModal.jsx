@@ -3,6 +3,7 @@ import { X, ShoppingCart, QrCode, MapPin, Truck, Tag, Gift, Percent, Share2, Che
 import { useCart } from '../context/CartContext';
 import { promotionsService } from '../services/promotions';
 import { api } from '../services/api';
+import { resolveProductImage } from '../utils/imageUtils';
 
 const SEDES_FALLBACK = [
   { id: 1, nombreSede: 'Sede Puente Piedra (Principal)', distrito: 'Puente Piedra' },
@@ -108,7 +109,8 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
     onClose();
   };
 
-  const hasLocalImage = product.imagenUrl && product.imagenUrl.startsWith('/images/products/') && !imgError;
+  const resolvedImg = resolveProductImage(product);
+  const hasValidImage = Boolean(resolvedImg && !imgError);
   const pricing = getItemPricing 
     ? getItemPricing({ ...product, cantidad: quantity }) 
     : { lineTotal: product.precio * quantity, promoDescription: null };
@@ -137,9 +139,9 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
           {/* Imagen Grande o Placeholder Neutro */}
           <div className="product-modal-image-col">
             <div className="modal-img-container">
-              {hasLocalImage || (product.imagenUrl && product.imagenUrl.startsWith('data:')) ? (
+              {hasValidImage ? (
                 <img
-                  src={product.imagenUrl}
+                  src={resolvedImg}
                   alt={product.nombre}
                   onError={() => setImgError(true)}
                 />

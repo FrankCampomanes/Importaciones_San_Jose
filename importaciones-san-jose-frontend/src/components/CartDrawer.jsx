@@ -20,6 +20,7 @@ import {
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { resolveProductImage } from '../utils/imageUtils';
 
 export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPurchases }) {
   const {
@@ -246,20 +247,23 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
                   {items.map(item => (
                     <div key={item.id} className="cart-item-row">
                       <div className="cart-item-thumb">
-                        {item.imagenUrl && item.imagenUrl.startsWith('/images/products/') ? (
-                          <img
-                            src={item.imagenUrl}
-                            alt={item.nombre}
-                            className="cart-item-img"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
+                        {(() => {
+                          const imgSrc = resolveProductImage(item);
+                          return (
+                            <img
+                              src={imgSrc}
+                              alt={item.nombre}
+                              className="cart-item-img"
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                          );
+                        })()}
                         <div
                           className="cart-item-placeholder"
-                          style={{ display: item.imagenUrl?.startsWith('/images/products/') ? 'none' : 'flex' }}
+                          style={{ display: 'none' }}
                         >
                           SJ
                         </div>

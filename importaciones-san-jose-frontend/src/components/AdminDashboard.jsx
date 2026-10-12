@@ -30,6 +30,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { promotionsService } from '../services/promotions';
+import { resolveProductImage } from '../utils/imageUtils';
 import CustomDropdown from './CustomDropdown';
 
 const CATEGORIAS_OPTIONS = [
@@ -193,7 +194,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
     setCategoria(prod.categoria || CATEGORIAS_FORM[0]);
     setCodigoQr(prod.codigoQr || `SJ-PROD-${String(prod.id).padStart(3, '0')}`);
     setImagenUrl(prod.imagenUrl || '');
-    setImagenPreview(prod.imagenUrl || '');
+    setImagenPreview(resolveProductImage(prod));
 
     // Cargar promo si existe para este producto
     const existingPromo = promotionsService.getForProduct(prod.id);
@@ -304,6 +305,21 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
     setFeedback(null);
 
     const numPrecio = parseFloat(precio);
+    const cleanQr = codigoQr.trim() || `SJ-PROD-${Date.now().toString().slice(-4)}`;
+
+    // Si la imagen cargada es una foto local en base64 (data:image/...), la guardamos en cache local
+    // y enviamos al backend una referencia compacta ('local:QR') que cumple holgadamente el límite de 500 caracteres.
+    let finalImagenUrl = imagenUrl.trim();
+    if (imagenPreview && imagenPreview.startsWith('data:')) {
+      try {
+        localStorage.setItem('sj_custom_img_' + cleanQr, imagenPreview);
+      } catch (e) {
+        console.warn('Almacenamiento de imagen:', e);
+      }
+      finalImagenUrl = `local:${cleanQr}`;
+    } else if (!finalImagenUrl) {
+      finalImagenUrl = '/images/products/img001.png';
+    }
 
     const productPayload = {
       nombre: nombre.trim(),
@@ -311,8 +327,8 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
       precio: numPrecio,
       costoAdquisicion: parseFloat((numPrecio * 0.65).toFixed(2)),
       categoria,
-      codigoQr: codigoQr.trim() || `SJ-PROD-${Date.now().toString().slice(-4)}`,
-      imagenUrl: imagenUrl || (imagenPreview.startsWith('data:') ? imagenPreview : '/images/products/img001.png'),
+      codigoQr: cleanQr,
+      imagenUrl: finalImagenUrl,
       activo: true
     };
 
@@ -608,16 +624,19 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                       <td><span className="id-badge">#{prod.id}</span></td>
                       <td>
                         <div className="admin-prod-thumb">
-                          {prod.imagenUrl ? (
-                            <img 
-                              src={prod.imagenUrl} 
-                              alt={prod.nombre} 
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                          ) : null}
+                          {(() => {
+                            const imgSrc = resolveProductImage(prod);
+                            return (
+                              <img 
+                                src={imgSrc} 
+                                alt={prod.nombre} 
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            );
+                          })()}
                           <div 
                             className="thumb-placeholder" 
                             style={{ display: prod.imagenUrl ? 'none' : 'flex' }}

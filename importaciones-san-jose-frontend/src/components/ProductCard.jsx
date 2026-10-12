@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Eye, QrCode, Tag, Gift, Percent } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { promotionsService } from '../services/promotions';
+import { resolveProductImage } from '../utils/imageUtils';
 
 export default function ProductCard({ product, onSelect, selectedSede, stockInSede }) {
   const { addToCart } = useCart();
@@ -18,8 +19,9 @@ export default function ProductCard({ product, onSelect, selectedSede, stockInSe
   // Consulta de promoción activa para este producto desde la base de datos
   const promo = promotionsService.getForProduct(product.id);
 
-  // Determina si tiene imagen local real
-  const hasLocalImage = product.imagenUrl && product.imagenUrl.startsWith('/images/products/') && !imgError;
+  // Determina imagen a mostrar (local, catálogo o remota)
+  const resolvedImg = resolveProductImage(product);
+  const hasValidImage = Boolean(resolvedImg && !imgError);
 
   return (
     <div className={`product-card ${promo ? 'has-promotion' : ''}`}>
@@ -70,9 +72,9 @@ export default function ProductCard({ product, onSelect, selectedSede, stockInSe
 
       {/* Imagen del Producto */}
       <div className="card-image-wrap" onClick={() => onSelect(product)}>
-        {hasLocalImage ? (
+        {hasValidImage ? (
           <img 
-            src={product.imagenUrl} 
+            src={resolvedImg} 
             alt={product.nombre}
             className="card-image"
             onError={() => setImgError(true)}
