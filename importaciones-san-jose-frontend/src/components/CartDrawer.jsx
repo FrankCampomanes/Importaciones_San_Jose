@@ -147,8 +147,12 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
 
     try {
       const res = await api.checkout(payload, token);
+      // Garantizar que el Total Pagado sea EXACTO al monto presupuestado y verificado en carrito (ej: S/ 23.00)
+      const finalTotal = total;
       setOrderResult({
         ...res,
+        total: finalTotal,
+        costoEnvio: costoEnvio,
         detalles: items.map(i => ({
           cantidad: i.cantidad,
           productoNombre: i.nombre,
@@ -749,8 +753,11 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
                     alert('Por favor permite ventanas emergentes para descargar tu comprobante.');
                     return;
                   }
-                  const subtotalCalc = (Number(orderResult.total) / 1.18).toFixed(2);
-                  const igvCalc = (Number(orderResult.total) - Number(subtotalCalc)).toFixed(2);
+                  const deliveryFee = orderResult.metodoEntrega === 'Delivery' ? Number(orderResult.costoEnvio ?? costoEnvio) : 0;
+                  const finalTotal = Number(orderResult.total);
+                  const productsTotal = Math.max(0, finalTotal - deliveryFee);
+                  const subtotalCalc = (productsTotal / 1.18).toFixed(2);
+                  const igvCalc = (productsTotal - Number(subtotalCalc)).toFixed(2);
 
                   printWindow.document.write(`
                     <!DOCTYPE html>
@@ -802,14 +809,15 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
                           ${orderResult.detalles && orderResult.detalles.length > 0 ? orderResult.detalles.map(d => `
                             <tr><td>${d.cantidad}</td><td>${d.productoNombre}</td><td style="text-align: right;">${Number(d.subtotal).toFixed(2)}</td></tr>
                           `).join('') : `
-                            <tr><td>1</td><td>Compra de Artículos seleccionados</td><td style="text-align: right;">${Number(orderResult.total).toFixed(2)}</td></tr>
+                            <tr><td>1</td><td>Compra de Artículos seleccionados</td><td style="text-align: right;">${Number(productsTotal).toFixed(2)}</td></tr>
                           `}
                         </tbody>
                       </table>
                       <div class="totals">
                         <div class="totals-row"><span>Op. Gravada:</span><span>S/ ${subtotalCalc}</span></div>
                         <div class="totals-row"><span>I.G.V. (18%):</span><span>S/ ${igvCalc}</span></div>
-                        <div class="totals-row totals-total"><span>TOTAL:</span><span>S/ ${Number(orderResult.total).toFixed(2)}</span></div>
+                        ${deliveryFee > 0 ? `<div class="totals-row"><span>Costo de Envío:</span><span>S/ ${deliveryFee.toFixed(2)}</span></div>` : ''}
+                        <div class="totals-row totals-total"><span>TOTAL:</span><span>S/ ${finalTotal.toFixed(2)}</span></div>
                       </div>
                       <div class="footer">
                         <p>Representación impresa del Comprobante de Pago Electrónico.</p>

@@ -187,8 +187,11 @@ export default function UserProfileModal({ isOpen, onClose, initialTab = 'datos'
       return;
     }
 
-    const subtotal = (Number(compra.total) / 1.18).toFixed(2);
-    const igv = (Number(compra.total) - Number(subtotal)).toFixed(2);
+    const deliveryFee = compra.metodoEntrega === 'Delivery' ? Number(compra.costoEnvio || 0) : 0;
+    const finalTotal = Number(compra.total);
+    const productsTotal = Math.max(0, finalTotal - deliveryFee);
+    const subtotal = (productsTotal / 1.18).toFixed(2);
+    const igv = (productsTotal - Number(subtotal)).toFixed(2);
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -257,7 +260,7 @@ export default function UserProfileModal({ isOpen, onClose, initialTab = 'datos'
               <tr>
                 <td>1</td>
                 <td>Compra General de Bazar / Artículos seleccionados</td>
-                <td style="text-align: right;">${Number(compra.total).toFixed(2)}</td>
+                <td style="text-align: right;">${Number(productsTotal).toFixed(2)}</td>
               </tr>
             `}
           </tbody>
@@ -266,7 +269,8 @@ export default function UserProfileModal({ isOpen, onClose, initialTab = 'datos'
         <div class="totals">
           <div class="totals-row"><span>Op. Gravada:</span><span>S/ ${subtotal}</span></div>
           <div class="totals-row"><span>I.G.V. (18%):</span><span>S/ ${igv}</span></div>
-          <div class="totals-row totals-total"><span>TOTAL:</span><span>S/ ${Number(compra.total).toFixed(2)}</span></div>
+          ${deliveryFee > 0 ? `<div class="totals-row"><span>Costo de Envío:</span><span>S/ ${deliveryFee.toFixed(2)}</span></div>` : ''}
+          <div class="totals-row totals-total"><span>TOTAL:</span><span>S/ ${finalTotal.toFixed(2)}</span></div>
         </div>
 
         <div class="footer">
