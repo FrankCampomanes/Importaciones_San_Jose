@@ -3971,5 +3971,63 @@
   cursor: not-allowed !important;
 }
 
+/* Sede Confirmada en Carrito / Checkout */
+.pickup-sede-confirmed-box {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-left: 4px solid #800020;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.pickup-sede-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pickup-sede-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.pickup-sede-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pickup-sede-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.pickup-sede-address {
+  font-size: 12.5px;
+  color: #475569;
+}
+
+.pickup-sede-badge-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #DCFCE7;
+  color: #166534;
+  border-radius: 9999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+  margin-top: 3px;
+}
+
 
 

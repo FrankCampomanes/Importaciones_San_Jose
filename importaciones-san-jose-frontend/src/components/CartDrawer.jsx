@@ -46,7 +46,17 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
   const [validationMsg, setValidationMsg] = useState(null);
   const [metodoPago, setMetodoPago] = useState('Tarjeta'); // 'Tarjeta' o 'Yape'
   const [codigoAprobacion, setCodigoAprobacion] = useState('');
-  const [recojoSedeId, setRecojoSedeId] = useState(selectedSede?.id || (sedes && sedes.length > 0 ? sedes[0].id : 1));
+
+  // Sede vinculada estrictamente al inventario y reserva del producto
+  const activeItemSede = items.find(i => i.sedeId);
+  const resolvedSedeId = activeItemSede?.sedeId || selectedSede?.id || (sedes && sedes.length > 0 ? sedes[0].id : 1);
+  const resolvedSedeObj = (sedes && sedes.length > 0)
+    ? sedes.find(s => Number(s.id) === Number(resolvedSedeId))
+    : null;
+  const resolvedSedeNombre = activeItemSede?.sedeNombre || resolvedSedeObj?.nombreSede || selectedSede?.nombreSede || 'Sede Puente Piedra (Principal)';
+  const resolvedSedeDireccion = resolvedSedeObj?.direccion
+    ? `${resolvedSedeObj.direccion} (${resolvedSedeObj.distrito})`
+    : (resolvedSedeObj?.distrito || (resolvedSedeNombre.includes('Puente Piedra') ? 'Mza. B Lote 9, Coop. San Lorenzo (Puente Piedra)' : ''));
 
   // Estados de Tarjeta (Culqi Sandbox)
   const [cardNum, setCardNum] = useState('4111 2222 3333 4444');
@@ -92,9 +102,6 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
     setNumDocumento(tipoComprobante === 'Factura' ? '20607725731' : '72849102');
     if (user?.nombreCompleto) setCardHolder(user.nombreCompleto.toUpperCase());
     if (user?.telefono) setYapePhone(user.telefono);
-    if (items.length > 0 && items[0].sedeId) {
-      setRecojoSedeId(items[0].sedeId);
-    }
     setStep('checkout');
   };
 
@@ -112,7 +119,7 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
     const activeItemSedeId = items.length > 0 && items[0].sedeId ? items[0].sedeId : (selectedSede?.id || 1);
 
     const payload = {
-      sedeId: metodoEntrega === 'Recojo en Tienda' ? parseInt(recojoSedeId) : activeItemSedeId,
+      sedeId: activeItemSedeId,
       metodoPagoId: metodoPago === 'Yape' ? 2 : 1,
       metodoEntrega,
       comprobante: tipoComprobante,
@@ -440,17 +447,21 @@ export default function CartDrawer({ selectedSede, sedes, onOpenAuth, onOpenMyPu
               </div>
 
               {metodoEntrega === 'Recojo en Tienda' && (
-                <div className="input-group mt-2">
-                  <label>Selecciona la Sede de Recojo</label>
-                  <select
-                    value={recojoSedeId}
-                    onChange={(e) => setRecojoSedeId(e.target.value)}
-                    required
-                  >
-                    {sedes && sedes.map(s => (
-                      <option key={s.id} value={s.id}>{s.nombreSede} - {s.distrito}</option>
-                    ))}
-                  </select>
+                <div className="pickup-sede-confirmed-box mt-2">
+                  <div className="pickup-sede-header-row">
+                    <Building2 size={16} className="brand-red" />
+                    <span className="pickup-sede-title">Sede de recojo confirmada para tu pedido:</span>
+                  </div>
+                  <div className="pickup-sede-details">
+                    <strong className="pickup-sede-name">{resolvedSedeNombre}</strong>
+                    {resolvedSedeDireccion && (
+                      <span className="pickup-sede-address">{resolvedSedeDireccion}</span>
+                    )}
+                  </div>
+                  <div className="pickup-sede-badge-sync">
+                    <CheckCircle2 size={13} />
+                    <span>Inventario y disponibilidad verificados en esta sede</span>
+                  </div>
                 </div>
               )}
 
