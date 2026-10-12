@@ -4,8 +4,6 @@ import { useCart } from '../context/CartContext';
 import { promotionsService } from '../services/promotions';
 import { api } from '../services/api';
 
-const DEFAULT_STOCKS_FALLBACK = { 1: 15, 2: 12, 3: 8, 4: 10, 5: 14 };
-
 const SEDES_FALLBACK = [
   { id: 1, nombreSede: 'Sede Puente Piedra (Principal)', distrito: 'Puente Piedra' },
   { id: 2, nombreSede: 'Sede Los Olivos', distrito: 'Los Olivos' },
@@ -21,10 +19,11 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
   const [copied, setCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [inventoryList, setInventoryList] = useState([]);
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
   const [activeSede, setActiveSede] = useState(selectedSede || null);
   const [sedeErrorPrompt, setSedeErrorPrompt] = useState(false);
 
-  // Lista unificada y garantizada de las 5 sedes
+  // Lista unificada de las 5 sedes
   const branchList = (sedes && sedes.length > 0) ? sedes : SEDES_FALLBACK;
 
   useEffect(() => {
@@ -34,32 +33,38 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
     setSedeErrorPrompt(false);
 
     if (product?.id) {
+      setInventoryLoaded(false);
       api.getInventoryByProduct(product.id)
         .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setInventoryList(data);
           }
         })
         .catch(err => {
-          console.warn('Consulta de inventario fallida, usando valores de tienda:', err);
+          console.warn('Consulta de inventario fallida:', err);
+        })
+        .finally(() => {
+          setInventoryLoaded(true);
         });
     }
   }, [product, selectedSede]);
 
   if (!product) return null;
 
-  // Obtener stock real o predeterminado para una sede
+  // Obtener stock real de la base de datos MySQL para una sede
   const getBranchStock = (sedeId) => {
+    if (!inventoryLoaded) return null;
     const inv = inventoryList.find(i => i.sedeId === sedeId);
     if (inv && typeof inv.stockActual === 'number') {
       return inv.stockActual;
     }
-    return DEFAULT_STOCKS_FALLBACK[sedeId] ?? 10;
+    return 0;
   };
 
   // Stock disponible en la sede actualmente seleccionada en el modal
-  const currentStock = activeSede ? getBranchStock(activeSede.id) : 0;
-  const isOutOfStock = Boolean(activeSede && currentStock === 0);
+  const rawStock = activeSede ? getBranchStock(activeSede.id) : null;
+  const currentStock = typeof rawStock === 'number' ? rawStock : 0;
+  const isOutOfStock = Boolean(activeSede && rawStock === 0);
   const isLimitReached = Boolean(activeSede && quantity >= currentStock && currentStock > 0);
 
   const handleShare = async () => {
@@ -84,7 +89,7 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
 
   const handleChooseSede = (branch) => {
     const stock = getBranchStock(branch.id);
-    if (stock <= 0) return;
+    if (typeof stock === 'number' && stock <= 0) return;
     setActiveSede(branch);
     setSedeErrorPrompt(false);
     setQuantity(1);
@@ -224,13 +229,19 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
             <div className="modal-badge-row">
               <span className="category-pill">{product.categoria}</span>
               {activeSede ? (
-                <span className={`stock-status-pill ${currentStock > 5 ? 'in-stock' : currentStock > 0 ? 'low-stock' : 'out-of-stock'}`}>
-                  {currentStock > 5 
-                    ? `Disponibles en esta sede: ${currentStock} u.`
-                    : currentStock > 0 
-                      ? `¡Últimas ${currentStock} unidades disponibles!`
-                      : 'Agotado en esta sede.'}
-                </span>
+                rawStock === null ? (
+                  <span className="stock-status-pill choose-sede">
+                    Consultando disponibilidad...
+                  </span>
+                ) : (
+                  <span className={`stock-status-pill ${currentStock > 5 ? 'in-stock' : currentStock > 0 ? 'low-stock' : 'out-of-stock'}`}>
+                    {currentStock > 5 
+                      ? `Disponibles en esta sede: ${currentStock} u.`
+                      : currentStock > 0 
+                        ? `¡Últimas ${currentStock} unidades disponibles!`
+                        : 'Agotado en esta sede.'}
+                  </span>
+                )
               ) : (
                 <span className="stock-status-pill choose-sede">
                   Selecciona una tienda física
@@ -261,30 +272,33 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
               {product.descripcion || 'Producto garantizado de primera calidad en Grupo Importaciones San José S.R.L.'}
             </p>
 
-            {/* Selector interactivo con atajos de tiendas físicas (Siempre visible para fácil cambio) */}
+            {/* Selector interactivo con atajos de tiendas físicas (Sin emoji 📍) */}
             <div className="modal-branch-selector-card">
               <div className="modal-branch-header">
                 <MapPin size={15} />
-                <span>📍 Disponibilidad en nuestras tiendas:</span>
+                <span>Disponibilidad en nuestras tiendas:</span>
               </div>
               <div className="modal-branch-chips-grid">
                 {branchList.map(branch => {
                   const isSelected = activeSede?.id === branch.id;
                   const stockVal = getBranchStock(branch.id);
-                  const hasStock = stockVal > 0;
+                  const isChecking = stockVal === null;
+                  const hasStock = typeof stockVal === 'number' && stockVal > 0;
+                  const isZero = typeof stockVal === 'number' && stockVal === 0;
                   const shortName = branch.nombreSede ? branch.nombreSede.replace(/^Sede\s+/i, '').replace(/\s*\(Principal\)/i, '') : `Tienda ${branch.id}`;
+                  
                   return (
                     <button
                       key={branch.id}
                       type="button"
-                      disabled={!hasStock}
+                      disabled={isZero}
                       onClick={() => handleChooseSede(branch)}
-                      className={`modal-branch-chip ${isSelected ? 'selected' : ''} ${!hasStock ? 'disabled' : ''}`}
-                      title={hasStock ? `Seleccionar ${branch.nombreSede} (${stockVal} u.)` : `Agotado en ${branch.nombreSede}`}
+                      className={`modal-branch-chip ${isSelected ? 'selected' : ''} ${isZero ? 'disabled' : ''}`}
+                      title={hasStock ? `Seleccionar ${branch.nombreSede} (${stockVal} u.)` : isZero ? `Agotado en ${branch.nombreSede}` : 'Consultando stock...'}
                     >
                       <span className="chip-name">{shortName}:</span>
-                      <span className={`chip-stock ${hasStock ? (stockVal > 5 ? 'good' : 'low') : 'none'}`}>
-                        {hasStock ? `${stockVal} u.` : 'Agotado'}
+                      <span className={`chip-stock ${hasStock ? (stockVal > 5 ? 'good' : 'low') : isZero ? 'none' : ''}`}>
+                        {isChecking ? '...' : isZero ? 'Agotado' : `${stockVal} u.`}
                       </span>
                       {isSelected && <Check size={13} className="chip-check" />}
                     </button>
@@ -322,7 +336,7 @@ export default function ProductModal({ product, onClose, selectedSede, sedes = [
               )}
             </div>
 
-            {/* Acciones de compra con contador y límite estricto */}
+            {/* Acciones de compra con contador y límite estricto sincronizado */}
             <div className="modal-purchase-actions">
               <div className="quantity-counter-wrapper">
                 <div className="quantity-counter">

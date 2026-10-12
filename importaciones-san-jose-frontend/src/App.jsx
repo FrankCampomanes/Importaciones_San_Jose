@@ -58,6 +58,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [sedeInventory, setSedeInventory] = useState({});
+  const [loadingInventory, setLoadingInventory] = useState(false);
   
   // Vistas: 'home', 'catalog', 'admin'
   const [currentView, setCurrentView] = useState('home');
@@ -83,9 +84,10 @@ export default function App() {
     return () => window.removeEventListener('promotions-updated', handlePromosUpdated);
   }, []);
 
-  // Cargar inventario de la sede seleccionada para disponibilidad instantánea y filtrado
+  // Cargar inventario de la sede seleccionada para disponibilidad instantánea y filtrado desde la base de datos
   useEffect(() => {
     if (selectedSede?.id) {
+      setLoadingInventory(true);
       api.getInventoryBySede(selectedSede.id)
         .then(list => {
           if (Array.isArray(list)) {
@@ -96,9 +98,11 @@ export default function App() {
             setSedeInventory(map);
           }
         })
-        .catch(() => setSedeInventory({}));
+        .catch(() => setSedeInventory({}))
+        .finally(() => setLoadingInventory(false));
     } else {
       setSedeInventory({});
+      setLoadingInventory(false);
     }
   }, [selectedSede]);
 
@@ -355,7 +359,7 @@ export default function App() {
                       key={p.id}
                       product={p}
                       selectedSede={selectedSede}
-                      stockInSede={selectedSede ? (typeof sedeInventory[p.id] === 'number' ? sedeInventory[p.id] : 12) : undefined}
+                      stockInSede={selectedSede ? (loadingInventory ? undefined : (sedeInventory[p.id] ?? 0)) : undefined}
                       onSelect={(prod) => setSelectedProduct(prod)}
                     />
                   ))}
@@ -472,7 +476,7 @@ export default function App() {
                       key={p.id}
                       product={p}
                       selectedSede={selectedSede}
-                      stockInSede={selectedSede ? (typeof sedeInventory[p.id] === 'number' ? sedeInventory[p.id] : 12) : undefined}
+                      stockInSede={selectedSede ? (loadingInventory ? undefined : (sedeInventory[p.id] ?? 0)) : undefined}
                       onSelect={(prod) => setSelectedProduct(prod)}
                     />
                   ))}

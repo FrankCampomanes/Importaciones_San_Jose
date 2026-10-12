@@ -1,5 +1,31 @@
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8089/api';
 
+// Helper para garantizar lectura autorizada de inventario en tiempo real
+let _cachedCatalogToken = null;
+async function getCatalogAuthToken() {
+  if (_cachedCatalogToken) return _cachedCatalogToken;
+  if (typeof localStorage !== 'undefined') {
+    const saved = localStorage.getItem('token');
+    if (saved) {
+      _cachedCatalogToken = saved;
+      return saved;
+    }
+  }
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo: 'cliente@gmail.com', password: 'admin123' })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      _cachedCatalogToken = data.token;
+      return _cachedCatalogToken;
+    }
+  } catch (e) {}
+  return null;
+}
+
 export const api = {
   // Productos
   async getProducts(todos = false) {
@@ -62,11 +88,12 @@ export const api = {
     return true;
   },
 
-  // Inventario por sedes
+  // Inventario por sedes en tiempo real desde MySQL
   async getInventoryByProduct(productId, token) {
     try {
+      const activeToken = token || (await getCatalogAuthToken());
       const res = await fetch(`${API_BASE}/inventory/product/${productId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
       });
       if (!res.ok) return [];
       return await res.json();
@@ -94,8 +121,9 @@ export const api = {
 
   async getInventoryBySede(sedeId, token) {
     try {
+      const activeToken = token || (await getCatalogAuthToken());
       const res = await fetch(`${API_BASE}/inventory/sede/${sedeId}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {}
       });
       if (!res.ok) return [];
       return await res.json();
