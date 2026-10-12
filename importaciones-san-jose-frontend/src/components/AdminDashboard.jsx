@@ -488,8 +488,9 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
     }
   };
 
-  // Filtrado de productos por texto y por categoría seleccionada
+  // Filtrado de productos por texto y por categoría seleccionada (excluyendo eliminados/inactivos)
   const displayedProducts = products.filter(p => {
+    if (p.activo === false) return false;
     const matchesCategory = selectedCategoryFilter === 'all' || p.categoria === selectedCategoryFilter;
     const matchesSearch = !searchTerm || 
       p.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -778,7 +779,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map(p => {
+                  {products.filter(p => p.activo !== false).map(p => {
                     const pStock = fullInventoryMap[p.id] || {};
                     const s1 = pStock[1] ?? 0;
                     const s2 = pStock[2] ?? 0;
@@ -793,7 +794,13 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
                         <td>
                           <div className="flex-align-gap">
                             <div className="admin-prod-thumb sm">
-                              {p.imagenUrl && <img src={p.imagenUrl} alt="" />}
+                              <img 
+                                src={resolveProductImage(p)} 
+                                alt={p.nombre} 
+                                onError={(e) => {
+                                  e.target.src = '/images/products/img001.png';
+                                }}
+                              />
                             </div>
                             <div>
                               <strong style={{ display: 'block', fontSize: '13.5px' }}>{p.nombre}</strong>
