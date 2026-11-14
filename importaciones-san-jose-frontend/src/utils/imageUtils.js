@@ -72,8 +72,8 @@ export function resolveProductImage(product) {
     return 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=500';
   }
 
-  // 4. Fallback dinámico con las imágenes base del catálogo oficial
-  if (product.id) {
+  // 4. Si es un producto inicial original (ID <= 39) que usa las fotos oficiales del repo:
+  if (product.id && product.id <= 39) {
     const defaultCatalogue = [
       '/images/products/img001.png',
       '/images/products/img002.png',
@@ -98,8 +98,10 @@ export function resolveProductImage(product) {
       '/images/products/img028.png',
       '/images/products/img030.png'
     ];
-    return defaultCatalogue[product.id % defaultCatalogue.length];
+    return defaultCatalogue[(product.id - 1) % defaultCatalogue.length];
   }
 
-  return '/images/products/img001.png';
+  // 5. Candado: Para productos nuevos (ID > 39), NUNCA asignamos la foto de otro producto al azar.
+  // Mostramos el logo oficial de Importaciones San José como placeholder limpio y profesional
+  return '/images/Logo.png';
 }

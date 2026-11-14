@@ -45,6 +45,7 @@ const CATEGORIAS = [
   { id: 'Juguetería y Niños', nombre: 'Juguetería y Niños', icon: Baby },
   { id: 'Útiles y Papelería', nombre: 'Útiles y Papelería', icon: BookOpen },
   { id: 'Belleza y Cuidado Personal', nombre: 'Belleza y Cuidado Personal', icon: Sparkle },
+  { id: 'Moda, Accesorios y Calzado', nombre: 'Moda, Accesorios y Calzado', icon: ShoppingBag },
   { id: 'Novedades y Temporada', nombre: 'Novedades y Temporada', icon: Gift }
 ];
 

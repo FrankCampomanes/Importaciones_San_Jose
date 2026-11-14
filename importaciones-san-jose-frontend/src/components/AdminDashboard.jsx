@@ -39,6 +39,7 @@ const CATEGORIAS_OPTIONS = [
   { value: 'Juguetería y Niños', label: 'Juguetería y Niños' },
   { value: 'Útiles y Papelería', label: 'Útiles y Papelería' },
   { value: 'Belleza y Cuidado Personal', label: 'Belleza y Cuidado Personal' },
+  { value: 'Moda, Accesorios y Calzado', label: 'Moda, Accesorios y Calzado' },
   { value: 'Novedades y Temporada', label: 'Novedades y Temporada' }
 ];
 
@@ -47,6 +48,7 @@ const CATEGORIAS_FORM = [
   'Juguetería y Niños',
   'Útiles y Papelería',
   'Belleza y Cuidado Personal',
+  'Moda, Accesorios y Calzado',
   'Novedades y Temporada'
 ];
 
@@ -316,16 +318,14 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
     const numPrecio = parseFloat(precio);
     const cleanQr = codigoQr.trim() || `SJ-PROD-${Date.now().toString().slice(-4)}`;
 
-    // Si la imagen cargada es una foto local en base64 (data:image/...), la guardamos en cache local
-    // y enviamos al backend una referencia compacta ('local:QR') que cumple holgadamente el límite de 500 caracteres.
+    // Si la imagen cargada es una foto local (data:image/...), la enviamos directamente a la BD en Aiven
+    // sin recortarla ni guardarla en localStorage, garantizando persistencia en la nube
     let finalImagenUrl = imagenUrl.trim();
     if (imagenPreview && imagenPreview.startsWith('data:')) {
+      finalImagenUrl = imagenPreview;
       try {
         localStorage.setItem('sj_custom_img_' + cleanQr, imagenPreview);
-      } catch (e) {
-        console.warn('Almacenamiento de imagen:', e);
-      }
-      finalImagenUrl = `local:${cleanQr}`;
+      } catch (e) {}
     } else if (!finalImagenUrl) {
       finalImagenUrl = '/images/products/img001.png';
     }
