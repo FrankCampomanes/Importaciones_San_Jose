@@ -68,11 +68,34 @@ A medida que se ejecuten las celdas, toma captura a estas salidas clave para peg
 
 ---
 
-## 🎯 PASO 6: LISTO PARA LA SUSTENTACIÓN EN VIVO
+## 🎯 PASO 6: EJEMPLOS PARA PROBAR EN LA CELDA 18 (FUERA DEL NOTEBOOK)
+
+En la Celda 18 del notebook dejaste una llamada limpia a `consultar_pedido(...)`. Si en cualquier momento quieres probar con otros productos o tiendas de tu cadena (por ejemplo, durante la sustentación cuando el profesor te pida un ejemplo), aquí tienes los datos exactos que puedes cambiarle:
+
+### Ejemplo A (Sede Los Olivos - Belleza):
+```python
+consultar_pedido('Sede Los Olivos', 'Belleza y Cuidado Personal', 3.50, 1.80, 15)
+```
+*Resultado esperado:* Demanda de ~18 unidades. Despacho sugerido con colchón de seguridad: 22 unidades.
+
+### Ejemplo B (Sede Comas - Hogar y Cocina):
+```python
+consultar_pedido('Sede Comas - Collique', 'Hogar y Cocina', 7.50, 4.80, 8)
+```
+*Resultado esperado:* Demanda de ~9 unidades. Despacho sugerido: 11 unidades.
+
+### Ejemplo C (Sede Puente Piedra - Juguetes):
+```python
+consultar_pedido('Sede Puente Piedra (Principal)', 'Juguetería y Niños', 12.00, 7.50, 20)
+```
+*Resultado esperado:* Demanda de ~23 unidades. Despacho sugerido: 28 unidades.
+
+---
+
+## 🎯 PASO 7: LISTO PARA LA SUSTENTACIÓN EN VIVO
 
 Para el día de la sustentación frente al profesor:
 1. Abre Colab 10 minutos antes y ejecuta todas las celdas para que queden cargadas.
 2. Durante los 2.5 minutos del bloque de *Resultados y Ejecución*, solo baja hasta la **Celda 18** en vivo.
-3. Cambias el ID de producto o de sede (ej. poner Sede 3 o Producto 15), le das al botón de Play ▶️ y le dices al profesor:
-   > *"Mire profesor, aquí en tiempo real la IA acaba de recibir la consulta de la tienda y en menos de un segundo le responde a la supervisora cuántas unidades debe despachar para evitar el quiebre de stock"*.
-4. ¡Y nota 20 asegurada! 🚀
+3. Cambias el nombre de la sede o categoría usando los ejemplos de arriba, le das al botón de Play ▶️ y le explicas al profesor cómo la función calcula el colchón de seguridad y la orden de traslado.
+4. ¡Y listo! 🚀
