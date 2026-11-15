@@ -327,7 +327,7 @@ export default function AdminDashboard({ products, onRefreshProducts, sedes, onC
         localStorage.setItem('sj_custom_img_' + cleanQr, imagenPreview);
       } catch (e) {}
     } else if (!finalImagenUrl) {
-      finalImagenUrl = '/images/products/img001.png';
+      finalImagenUrl = null;
     }
 
     const productPayload = {
