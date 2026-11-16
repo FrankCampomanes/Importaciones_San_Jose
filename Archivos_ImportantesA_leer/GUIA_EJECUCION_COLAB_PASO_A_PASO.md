@@ -29,7 +29,7 @@ Antes de entrar a Google Colab, asegúrate de tener estos dos archivos listos en
 2. Haz clic en el primer botón que tiene una flechita hacia arriba ⬆️ (*Subir al almacenamiento de sesión*).
 3. Selecciona tu archivo `dataset_demanda_san_jose.csv` desde tu computadora.
 4. Verás que aparece en la lista de archivos junto a la carpeta `sample_data`.
-> ⚠️ **Nota:** Si cierras Colab o se desconecta la sesión, el archivo CSV se borra de la memoria temporal. Solo tendrías que volver a subirlo con el mismo icono 📁.
+> 💡 **Nota práctica:** Si no subes el CSV manualmente, ¡no te preocupes! La Celda 2 del cuaderno incluye una línea automática que lo descarga al instante directamente desde tu GitHub si detecta que no está en la carpeta.
 
 ---
 

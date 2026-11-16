@@ -44,7 +44,7 @@ El dataset proviene directamente de la base de datos MySQL 8.4 en **Aiven Cloud*
 | `nombre_sede` | String | Texto | Nombre de la sucursal | 5 nombres de sedes |
 | `id_producto` | Integer | ID categórico | Identificador único del producto | [1, 49] (excluye inactivos) |
 | `nombre_producto`| String | Texto | Descripción comercial del artículo | Catálogo oficial |
-| `categoria` | String | Texto | Categoría del catálogo | 7 categorías activas |
+| `categoria` | String | Texto | Categoría del catálogo | 6 categorías activas |
 | `precio_unitario`| Decimal | Nuevos Soles (S/)| Precio de venta al público | S/ 1.00 a S/ 35.00 |
 | `costo_unitario` | Decimal | Nuevos Soles (S/)| Costo de adquisición unitario | S/ 0.60 a S/ 22.00 |
 | `cantidad` | Integer | Unidades físicas| Cantidad vendida en la transacción | Entero > 0 (1 a 10) |
@@ -60,7 +60,7 @@ El dataset proviene directamente de la base de datos MySQL 8.4 en **Aiven Cloud*
 | **1. Escala del Negocio** | Ventas diarias acordes al tamaño de la MiPYME declarado en APF1. | Puente Piedra registra 15 a 20 pedidos diarios; el total de la cadena genera 38–65 pedidos diarios. Facturación total mensual de S/. 22,106.49 para 5 locales (promedio S/ 4,400 por local/mes), coherente con menudeo. |
 | **2. Rangos y Unidades** | Sin valores imposibles (stock < 0, precios negativos, fechas futuras). | Filtros SQL y aserciones de código: `dv.Cantidad > 0`, `dv.Precio_Unitario >= 0`, `Fecha_Hora <= '2026-11-11'`. Cero violaciones. |
 | **3. Consistencia Lógica y Temporal** | Fechas en orden secuencial; total = suma de líneas; categorías válidas. | Fechas ordenadas cronológicamente del 6 de Octubre al 11 de Noviembre de 2026. Los subtotales coinciden con `Cantidad * Precio_Unitario`. |
-| **4. Relaciones Plausibles** | Al menos 2 relaciones reales esperadas por el negocio observadas en el EDA. | **Relación 1:** Picos claros de demanda los sábados y domingos (55-65 ventas vs 38-46 entre semana).<br>**Relación 2:** Categorías `Hogar y Cocina` (41.8%), `Novedades y Temporada` (20.2%) y `Belleza y Cuidado Personal` (19.0%) concentran más del 80% de la rotación total. |
+| **4. Relaciones Plausibles** | Al menos 2 relaciones reales esperadas por el negocio observadas en el EDA. | **Relación 1:** Picos claros de demanda los sábados y domingos (55-65 ventas vs 38-46 entre semana).<br>**Relación 2:** Las categorías `Hogar y Cocina`, `Belleza y Cuidado Personal` y `Moda y Accesorios` concentran el mayor volumen de rotación en las sedes físicas. |
 | **5. Señal ni Nula ni Perfecta** | El target depende de las variables sin llegar a métricas imposibles ($R^2 \ge 0.98$). | El Gradient Boosting alcanza $R^2 \approx 0.78$–$0.84$ con MAE $\approx 1.6$–$1.8$ unidades. Ni es ruido blanco ($R^2 \approx 0$) ni separación trivial ($R^2 > 0.98$). |
 | **6. Coherencia con APF2** | Mismos campos, tipos y fuentes del Contrato de Datos preliminar. | Se mantiene la estructura exacta aprobada en APF2, agregando únicamente variables de calendario y etiqueta de auditoría. |
 | **7. Mezcla Real + Simulado** | Los datos simulados no contradicen la distribución de los reales. | Los precios promedio y tickets medios de las ventas reales (Oct 6–12) presentan medias de S/ 14.50 por ticket, consistentes con la media de S/ 15.42 de las ventas simuladas. |

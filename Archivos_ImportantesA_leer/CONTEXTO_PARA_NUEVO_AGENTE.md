@@ -82,12 +82,18 @@ El informe académico del equipo (Word/PDF que viene de APF1 y APF2) contiene al
 ## 📊 SECCIÓN 5: ESTADO REAL DE LA BASE DE DATOS Y AUDITORÍA DE VENTAS
 
 La base de datos en Aiven cuenta con:
-- **46 productos activos** reales del catálogo de la tienda.
+- **46 productos activos** reales distribuidos en **6 categorías oficiales**:
+  1. **Hogar y Cocina:** 20 productos (955 ventas registradas en el dataset)
+  2. **Belleza y Cuidado Personal:** 8 productos (434 ventas registradas en el dataset)
+  3. **Juguetería y Niños:** 6 productos (281 ventas registradas en el dataset)
+  4. **Moda y Accesorios:** 5 productos (247 ventas registradas en el dataset: Pantuflas, Morral Deportivo, Cartera multiusos, Llavero panda, Llavero cachorro)
+  5. **Novedades y Temporada:** 4 productos (215 ventas registradas en el dataset)
+  6. **Útiles y Papelería:** 3 productos (154 ventas registradas en el dataset)
 - **2 productos de prueba (IDs 36 y 37):** "Producto Prueba Test Stock" y "Producto Prueba Test Deploys" están con `Activo = 0` y tienen **0 ventas registradas**, por lo que **no alteran ni distorsionan el dataset de Machine Learning**.
 - **1,433 ventas registradas en 36 días continuos (6 de Octubre al 11 de Noviembre de 2026):**
   - **17 ventas reales** (Oct 6–12, 2026) registradas durante el piloto del MVP (`origen = 'real'`).
   - **1,416 ventas simuladas** (Oct 13 – Nov 11, 2026) calibradas con la escala real del encargado (`origen = 'simulado'`).
-  - **2,287 registros de detalle** (`Detalle_Ventas`).
+  - **2,286 registros de detalle** en el dataset (`dataset_demanda_san_jose.csv`).
   - **3,208 unidades físicas vendidas**.
   - **Facturación total:** S/. 22,106.49.
   - **Costo total de adquisición:** S/. 13,198.89.
@@ -147,77 +153,39 @@ El dataset de Machine Learning **cumple estrictamente con la Ley N° 29733 (Ley 
 
 ---
 
-## 🚀 SECCIÓN 7: HOJA DE RUTA DETALLADA PARA EL NUEVO AGENTE (QUÉ HACER)
+## 🚀 SECCIÓN 7: ESTADO ACTUAL Y HOJA DE RUTA PARA EL NUEVO AGENTE (QUÉ HACER)
 
-### 📌 PASO 1: Exportar `dataset_demanda_san_jose.csv` desde Aiven
-Ejecutar la exportación usando la siguiente consulta SQL verificada contra el esquema real:
-
-```sql
-SELECT
-    v.ID_Venta,
-    v.Fecha_Hora,
-    DAYNAME(v.Fecha_Hora)       AS dia_semana,
-    CASE WHEN DAYOFWEEK(v.Fecha_Hora) IN (1,7) THEN 1 ELSE 0 END AS es_fin_de_semana,
-    WEEK(v.Fecha_Hora, 3)       AS semana_iso,
-    CEIL(DAY(v.Fecha_Hora)/7)   AS semana_del_mes,
-    v.ID_Sede,
-    s.Nombre                    AS nombre_sede,
-    dv.ID_Producto,
-    p.Nombre                    AS nombre_producto,
-    p.Categoria                 AS categoria,
-    dv.Precio_Unitario           AS precio_unitario,
-    COALESCE(dv.Costo_Unitario, p.Costo_Adquisicion) AS costo_unitario,
-    dv.Cantidad                 AS cantidad,
-    v.Metodo_Entrega            AS metodo_entrega,
-    CASE 
-        WHEN v.Fecha_Hora <= '2026-10-12 23:59:59' THEN 'real' 
-        ELSE 'simulado' 
-    END AS origen
-FROM Ventas v
-JOIN Detalle_Ventas dv ON dv.ID_Venta = v.ID_Venta
-JOIN Productos p       ON p.ID_Producto = dv.ID_Producto
-JOIN Sedes s           ON s.ID_Sede = v.ID_Sede
-WHERE v.Estado = 'Completada'
-  AND dv.Cantidad > 0
-  AND dv.Precio_Unitario >= 0
-ORDER BY v.Fecha_Hora ASC;
-```
-Guardar como: `C:\Users\frank\Downloads\Importaciones_San_Jose\dataset_demanda_san_jose.csv`.
+### 📌 FASE COMPLETADA AL 100%:
+1. **Base de Datos Aiven:** Actualizada con la categoría oficial `Moda y Accesorios` (IDs 44, 46, 17, 15, 18).
+2. **Dataset Oficial:** `dataset_demanda_san_jose.csv` (2,286 filas, 16 columnas) generado desde MySQL con las 6 categorías y disponible tanto localmente como en GitHub Raw.
+3. **Frontend Vercel:** `App.jsx` y `AdminDashboard.jsx` sincronizados con `Moda y Accesorios`.
+4. **Notebook Jupyter/Colab:** `Importaciones_San_Jose_APF3.ipynb` (38 celdas, 19 markdown + 19 código) completamente verificado, probado, sin errores de sintaxis, sin términos de IA delatores, y con descarga automática vía `curl` desde GitHub.
+5. **Git & GitHub:** Todo subido y sincronizado en la rama `main` de `FrankCampomanes/Importaciones_San_Jose`.
 
 ---
 
-### 📌 PASO 2: Construir el Notebook de Google Colab (`Importaciones_San_Jose_APF3.ipynb`)
-El notebook debe implementarse **celda por celda** (o en bloques estructurados), explicando con claridad a Frank cada una de las 19 celdas:
+### 📌 QUÉ DEBE HACER EL NUEVO AGENTE AHORA (PASO A PASO):
 
-| Celda | Propósito Técnico | Qué produce / Gráfico | Explicación para los Compañeros / Word |
-|:--:|---|---|---|
-| **1** | Instalación de dependencias | Salida de instalación (`pip install`) | Prepara el entorno con scikit-learn, pandas, matplotlib, seaborn y joblib. |
-| **2** | Carga del CSV + Auditoría `origen` | Estadísticas descriptivas (`df.describe()`) | Muestra que el dataset tiene 2,287 registros, validando las ventas reales y simuladas. |
-| **3** | EDA: Ventas por Categoría | Gráfico de barras horizontales | Demuestra qué categorías rotan más (Hogar, Cocina, Belleza). |
-| **4** | EDA: Ventas Hábil vs. Fin de Semana | Gráfico de barras comparativo | Demuestra que los picos ocurren sábados y domingos (55-65 ventas/día). |
-| **5** | Agregación Semanal (`demanda_semanal`) | Tabla agregada por `(semana_iso, id_sede, id_producto)` | Calcula la variable objetivo continua que la supervisora necesita saber. |
-| **6** | Feature Engineering | One-Hot Encoding de variables categóricas | Transforma texto (sede, categoría) en números interpretables por el modelo. |
-| **7** | Partición Cronológica 70/15/15 | Tabla de rangos de fechas (Train, Val, Test) | **Estrictamente cronológica (sin shuffle)** para evitar *Data Leakage*. |
-| **8** | Línea Base (Promedio Móvil 4 semanas) | MAE, RMSE y WAPE del supervisor | Simula cómo decide hoy la supervisora; es la cota a superar. |
-| **9** | Modelo 1: Ridge / Lasso | Coeficientes e importancia de variables | Regresión lineal regularizada con freno para no sobredimensionar coeficientes. |
-| **10** | Modelo 2: KNN sin StandardScaler | MAE, RMSE de KNN sin escalar | Modelo de vecinos cercanos; sirve de contraejemplo pedagógico. |
-| **11** | Modelo 3: KNN con StandardScaler | Comparativa con el modelo anterior | Demuestra el impacto positivo de la normalización exigida en el curso. |
-| **12** | Modelo 4: Decision Tree Regressor | Árbol con poda (`max_depth`) | Genera reglas lógicas transparentes y comprensibles para el negocio. |
-| **13** | Modelo 5: Gradient Boosting Regressor | Curva de optimización y métricas | Ensamble de árboles que corrige errores residuales; suele ser el ganador. |
-| **14** | Tabla Comparativa de Modelos | Tabla resumen con MAE, RMSE, WAPE de todos | Evidencia científica del torneo que demuestra la victoria del mejor modelo. |
-| **15** | Análisis de Fallos (3 casos de error) | Gráficos de residuos + 3 hipótesis de negocio | Analiza semanas atípicas o quiebres imprevistos (explicabilidad). |
-| **16** | Feature Importances | Gráfico de barras con pesos de variables | Identifica qué factores impactan más (historial, día, sede, precio). |
-| **17** | Exportación del Modelo | `modelo_demanda_san_jose.joblib` | Archivo binario serializado para su futura puesta en producción. |
-| **18** | Función de Inferencia Interactiva | Consulta de prueba: ingresa sede y producto → predice unidades | Simula la decisión semanal: *"Mandar 18 esponjas a Los Olivos"*. |
-| **19** | Hoja de Gobernanza y Ética (Ley 31814) | Matriz de cumplimiento y supervisión humana | Justifica que la IA asiste pero la supervisora humana aprueba el despacho. |
-
----
-
-### 📌 PASO 3: Revisión del Informe Académico
-Cuando Frank comparta el borrador del informe en Word o texto, el agente debe contrastar los datos contra `INFORME_ACADEMICO_APF2_Y_CONTRATO_DATOS.md` y verificar que las correcciones de tiempo (4-6 min en mostrador vs 15-20 min), delivery nuevo, y regresión continua queden perfectamente asentadas.
+1. **Acompañar a Frank en la ejecución del Notebook en Google Colab:**
+   - Frank solo debe subir el archivo `Importaciones_San_Jose_APF3.ipynb` a Google Colab y darle a **"Ejecutar todas"** (`Ctrl + F9`).
+   - Si Frank tiene dudas sobre alguna gráfica o salida específica (por ejemplo los gráficos de EDA de celdas 6 y 8, el árbol de decisión de celda 24, o la importancia de factores de celda 32), explicárselo en lenguaje humano y natural, con ejemplos de la tienda.
+2. **Guiar el Informe Académico de APF3 en Word:**
+   - Apoyar a Frank y a sus compañeros (Huayaney, Ronal, Kevin, Leonardo) a redactar las secciones de su trabajo basándose en los documentos detallados ya elaborados en esta carpeta:
+     - `PASO_1_PROBLEMA_Y_RESUMEN_EJECUTIVO.md`
+     - `PASO_2_DATASET_COHERENCIA_Y_PREPROCESAMIENTO.md`
+     - `PASO_3_MODELADO_Y_COMPARACION.md`
+     - `PASO_4_EVALUACION_INTERPRETACION_INTEGRACION_NORMATIVA.md`
+     - `INFORME_ACADEMICO_APF2_Y_CONTRATO_DATOS.md`
+     - `EXPLICACION_COLAB_CELDA_A_CELDA_PARA_COMPANEROS.md`
+     - `ESTRUCTURA_SLIDES_SUSTENTACION.md`
+3. **Mantener las Reglas de Oro:**
+   - Cero improvisaciones técnicas.
+   - Nada de localhost; todo opera en la nube (Vercel, Render, Aiven).
+   - Lenguaje claro, cercano y profesional.
+   - Mantener todo sincronizado.
 
 ---
 
 ## 💬 PRIMER MENSAJE RECOMENDADO PARA EL NUEVO AGENTE:
 
-> *"¡Hola Frank! He leído y comprendido todo el contexto consolidado del proyecto Grupo Importaciones San José S.R.L. Conozco tu experiencia en tienda, las 5 sedes, la caja de S/. 200, las correcciones del informe (4-6 min en tienda física, delivery nuevo, modelo de Regresión), los 46 productos y las 1,433 ventas en Aiven. Sé que trabajaremos paso a paso y con explicaciones claras para tus compañeros. ¿Empezamos exportando el dataset `dataset_demanda_san_jose.csv` desde Aiven o deseas revisar algo antes?"*
+> *"¡Hola Frank! He leído y comprendido todo el contexto consolidado del proyecto Grupo Importaciones San José S.R.L. Sé que la BD en Aiven, el dataset con 2,286 filas y 6 categorías (incluyendo Moda y Accesorios), el frontend y el notebook `Importaciones_San_Jose_APF3.ipynb` ya están 100% listos y sincronizados en GitHub. Sé cómo funciona la tienda física, la caja diaria de S/. 200, las 5 sedes y que estamos listos para revisar la ejecución en Colab o avanzar con el informe académico en Word para tus compañeros. ¿En qué parte deseas que nos enfoquemos primero?"*
