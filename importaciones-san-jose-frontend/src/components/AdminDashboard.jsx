@@ -39,7 +39,7 @@ const CATEGORIAS_OPTIONS = [
   { value: 'Juguetería y Niños', label: 'Juguetería y Niños' },
   { value: 'Útiles y Papelería', label: 'Útiles y Papelería' },
   { value: 'Belleza y Cuidado Personal', label: 'Belleza y Cuidado Personal' },
-  { value: 'Moda, Accesorios y Calzado', label: 'Moda, Accesorios y Calzado' },
+  { value: 'Moda y Accesorios', label: 'Moda y Accesorios' },
   { value: 'Novedades y Temporada', label: 'Novedades y Temporada' }
 ];
 
@@ -48,7 +48,7 @@ const CATEGORIAS_FORM = [
   'Juguetería y Niños',
   'Útiles y Papelería',
   'Belleza y Cuidado Personal',
-  'Moda, Accesorios y Calzado',
+  'Moda y Accesorios',
   'Novedades y Temporada'
 ];
 
